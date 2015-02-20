@@ -3,7 +3,7 @@
   "default_attributes": {
 
   },
-  "json_class": "Chef::Environment",
+  "json_class": "Chef::Environment for fun",
   "description": "One step before production to test releases",
   "cookbook_versions": {
     "apt": "= 2.4.0",
@@ -20,4 +20,4 @@
   },
   "chef_type": "environment"
   }
-  
+

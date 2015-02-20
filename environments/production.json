@@ -4,7 +4,7 @@
 
   },
   "json_class": "Chef::Environment",
-  "description": "The production environment",
+  "description": "The production environment, its productive in here",
   "cookbook_versions": {
     "apt": "= 2.4.0",
     "build-essential": "= 2.0.4",
@@ -19,4 +19,4 @@
     "yum": "= 3.4.2"
   },
   "chef_type": "environment"
-  }
+}
