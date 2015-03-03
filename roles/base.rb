@@ -14,7 +14,7 @@ override_attributes(
 
 run_list %w[
   recipe[ntp]
-  recipe[os-hardening]
-  recipe[ssh-hardening]
   recipe[sudo]
+  role[hardening]
+  role[chef_client]
 ]
