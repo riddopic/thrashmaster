@@ -6,6 +6,7 @@ group :community do
   cookbook 'chef-dk'
   cookbook 'chef-zero'
   cookbook 'chef_handler'
+  cookbook 'docker'
   cookbook 'git'
   cookbook 'java'
   cookbook 'jenkins'
