@@ -2,14 +2,16 @@
 source "https://supermarket.getchef.com"
 
 group :community do
-  cookbook 'chef_handler'
   cookbook 'chef-client'
-  cookbook 'chef-zero'
-  cookbook 'resolver'
-  cookbook 'jenkins'
   cookbook 'chef-dk'
-  cookbook 'sudo'
-  cookbook 'java'
+  cookbook 'chef-zero'
+  cookbook 'chef_handler'
   cookbook 'git'
+  cookbook 'java'
+  cookbook 'jenkins'
+  cookbook 'ntp'
+  cookbook 'os-hardening'
+  cookbook 'ssh-hardening'
+  cookbook 'sudo'
   cookbook 'yum'
 end

@@ -1,10 +1,28 @@
+# encoding: UTF-8
+
 name        'base'
-description 'Example Base Role'
+description 'Base role applied to all nodes'
 
-default_attributes chef_client: { init_style: 'none' }
-
-run_list(
-  'recipe[chef-client::delete_validation]',
-  'recipe[cron]',
-  'recipe[chef-client]'
+override_attributes(
+  ntp: {
+    servers: %w[
+      0.centos.pool.ntp.org
+      1.centos.pool.ntp.org
+      2.centos.pool.ntp.org
+      3.centos.pool.ntp.org
+    ]
+  },
+  authorization: {
+    sudo: {
+      passwordless:      true,
+      include_sudoers_d: true
+    }
+  }
 )
+
+run_list %w[
+  recipe[ntp]
+  recipe[os-hardening]
+  recipe[ssh-hardening]
+  recipe[sudo]
+]
