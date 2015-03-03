@@ -11,7 +11,7 @@ cookbook_versions(
   'chef_handler'    => '= 1.1.6',
   'cron'            => '= 1.6.1',
   'dmg'             => '= 2.2.2',
-  'docker'          => '= 0.34.2',
+  'docker'          => '= 0.36.0',
   'emacs'           => '= 0.9.2',
   'git'             => '= 4.1.0',
   'java'            => '= 1.31.0',
