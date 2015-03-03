@@ -1,5 +1,5 @@
 
-source "https://supermarket.getchef.com"
+source 'https://supermarket.getchef.com'
 
 group :community do
   cookbook 'chef-client'
@@ -15,3 +15,6 @@ group :community do
   cookbook 'sudo'
   cookbook 'yum'
 end
+
+cookbook 'garcon', git: 'https://github.com/riddopic/garcon.git'
+cookbook 'odsee',  git: 'https://github.com/riddopic/odsee.git'

@@ -1,8 +1,9 @@
-
 {
   "id":           "thrashmaster",
   "client_name":  "jenkins",
+  "organization": "pipeline",
   "chef_server":  "http://0.0.0.0:80",
+
   "chef_repos": [
     {
       "name":    "thrashmaster",
