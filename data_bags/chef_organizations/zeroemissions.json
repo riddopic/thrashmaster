@@ -2,7 +2,7 @@
   "id":           "zeroemissions",
   "client_name":  "jenkins",
   "organization": "pipeline",
-  "chef_server":  "http://0.0.0.0:80",
+  "chef_server":  "http://10.254.254.254:8443",
   "chef_repos": [
     {
       "name":    "zeroemissions",

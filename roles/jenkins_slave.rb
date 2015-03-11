@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
-name        'master_jenkins'
-description 'Sir. Master Jenkins and his Pipeline role.'
+name        'jenkins_slave'
+description 'A Slave called Jenkins and his Pipeline'
 
 default_attributes(
   java: {
@@ -14,7 +14,5 @@ default_attributes(
 )
 
 run_list %w[
-  recipe[java]
-  recipe[jenkins::master]
-  recipe[git::default]
+  recipe[pipeline::slave]
 ]

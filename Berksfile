@@ -4,7 +4,6 @@ source 'https://supermarket.getchef.com'
 group :community do
   cookbook 'chef-client'
   cookbook 'chef-dk'
-  cookbook 'chef-zero'
   cookbook 'chef_handler'
   cookbook 'docker'
   cookbook 'git'
@@ -15,7 +14,8 @@ group :community do
   cookbook 'ssh-hardening'
   cookbook 'sudo'
   cookbook 'yum'
+  cookbook 'yum-epel'
 end
 
-cookbook 'garcon', git: 'https://github.com/riddopic/garcon.git'
-cookbook 'odsee',  git: 'https://github.com/riddopic/odsee.git'
+cookbook 'garcon', github: 'riddopic/garcon', tag: '0.8.6'
+cookbook 'odsee',  github: 'https://github.com/riddopic/odsee.git'
