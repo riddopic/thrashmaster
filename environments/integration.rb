@@ -13,6 +13,7 @@ cookbook_versions(
   'git'             => '= 4.1.0',
   'java'            => '= 1.31.0',
   'jenkins'         => '= 2.2.2',
+  'logrotate'       => '= 1.8.0',
   'ntp'             => '= 1.7.0',
   'os-hardening'    => '= 1.2.0',
   'pipeline'        => '= 0.2.0',

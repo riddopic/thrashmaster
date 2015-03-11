@@ -18,4 +18,4 @@ group :community do
 end
 
 cookbook 'garcon', github: 'riddopic/garcon', tag: '0.8.6'
-cookbook 'odsee',  github: 'https://github.com/riddopic/odsee.git'
+cookbook 'odsee',  github: 'riddopic/odsee.git'
