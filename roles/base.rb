@@ -7,7 +7,8 @@ override_attributes(
   authorization: {
     sudo: {
       passwordless:      true,
-      include_sudoers_d: true
+      include_sudoers_d: true,
+      sudoers_defaults:  ['!requiretty,!lecture,tty_tickets,!fqdn']
     }
   }
 )

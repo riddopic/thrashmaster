@@ -38,7 +38,6 @@ group :community do
   cookbook 'openssl'
   cookbook 'os-hardening'
   cookbook 'packagecloud'
-  cookbook 'pipeline'
   cookbook 'polipo'
   cookbook 'postgresql'
   cookbook 'python'
@@ -60,3 +59,4 @@ end
 
 cookbook 'garcon', github: 'riddopic/garcon', tag: '0.8.6'
 cookbook 'odsee',  github: 'riddopic/odsee'
+# cookbook 'pipeline',  github: 'riddopic/pipeline'
