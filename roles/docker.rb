@@ -3,7 +3,7 @@
 name        'docker'
 description 'Docker role'
 
-override_attributes chef_client: { init: 'none' }
+override_attributes
 
 run_list %w[
   recipe[docker::default]
