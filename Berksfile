@@ -58,4 +58,3 @@ group :community do
 end
 
 cookbook 'garcon',     github: 'riddopic/garcon', branch: 'develop'
-cookbook 'pipeline',   git:    'git@github.com:riddopic/pipeline.git'
