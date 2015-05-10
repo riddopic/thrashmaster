@@ -57,7 +57,5 @@ group :community do
   cookbook 'yum-epel'
 end
 
-cookbook 'garcon',     github: 'riddopic/garcon', tag: '0.8.6'
-cookbook 'odsee',      github: 'riddopic/odsee'
-cookbook 'websphere',  github: 'riddopic/websphere'
-cookbook 'wordpress',  github: 'riddopic/wordpress'
+cookbook 'garcon',     github: 'riddopic/garcon', branch: 'develop'
+cookbook 'pipeline',   git:    'git@github.com:riddopic/pipeline.git'

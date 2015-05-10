@@ -3,13 +3,6 @@
 name        'chef_client'
 description 'Chef Client role'
 
-# PLEASE NOTE:
-#  * All attributes are in lower_snake_case format. Please DO NOT USE
-#    CamelCase or UPERCASE format.
-#
-#  * The Chef Client role (NOT Chef Environment) must ONLY contain data
-#    specific to the Chef Client role.
-
 override_attributes(
   chef_client: {
     init:        'none',
