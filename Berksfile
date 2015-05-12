@@ -1,10 +1,6 @@
 
 source 'https://supermarket.getchef.com'
 
-group :integration do
-  cookbook 'thrashmaster', path: '.thrashmaster/'
-end
-
 group :community do
   cookbook '7-zip'
   cookbook 'apache2'
@@ -61,4 +57,4 @@ group :community do
   cookbook 'yum-epel'
 end
 
-cookbook 'garcon',     github: 'riddopic/garcon', branch: 'develop'
+cookbook 'garcon', github: 'riddopic/garcon', branch: 'develop'
