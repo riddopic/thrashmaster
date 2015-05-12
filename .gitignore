@@ -191,7 +191,4 @@ cscope.po.out
 vendor/bundle
 vendor/cache
 
-SCRATCH.rb
-Dockerfile
 Vagrantfile.erb
-

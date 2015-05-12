@@ -1,0 +1,205 @@
+DEPENDENCIES
+  7-zip
+  apache2
+  apt
+  ark
+  aufs
+  bluepill
+  build-essential
+  chef-client
+  chef-dk
+  chef-sugar
+  chef_handler
+  chruby_install
+  cron
+  device-mapper
+  dmg
+  docker
+  dpkg_autostart
+  garcon
+    git: git://github.com/riddopic/garcon.git
+    revision: 7899d23e3d12ffe308c4900d7901034f642e771a
+    branch: develop
+  git
+  golang
+  homebrew
+  htpasswd
+  iptables
+  iptables-ng
+  java
+  jenkins
+  logrotate
+  lxc
+  modules
+  nginx
+  nginx-proxy
+  nodejs
+  ntp
+  ohai
+  openssl
+  os-hardening
+  packagecloud
+  polipo
+  postgresql
+  python
+  redisio
+  resolver
+  rsyslog
+  rubies
+  ruby_install
+  runit
+  ssh-hardening
+  sudo
+  supermarket
+  sysctl
+  thrashmaster
+    path: .thrashmaster
+  ulimit
+  windows
+  yum
+  yum-epel
+
+GRAPH
+  7-zip (1.0.2)
+    windows (>= 1.2.2)
+  apache2 (3.0.1)
+    iptables (>= 0.0.0)
+    logrotate (>= 0.0.0)
+  apt (2.7.0)
+  ark (0.9.0)
+    7-zip (>= 0.0.0)
+    windows (>= 0.0.0)
+  aufs (0.1.1)
+    apt (>= 0.0.0)
+    modules (>= 0.0.0)
+  bluepill (2.3.1)
+    rsyslog (>= 0.0.0)
+  build-essential (2.2.3)
+  chef-client (4.3.0)
+    cron (>= 1.2.0)
+    logrotate (>= 1.2.0)
+    windows (~> 1.11)
+  chef-dk (3.0.0)
+    dmg (~> 2.2)
+  chef-sugar (3.1.0)
+  chef_handler (1.1.6)
+  chruby_install (0.1.1)
+    build-essential (>= 0.0.0)
+  cron (1.6.1)
+  device-mapper (0.1.0)
+    apt (>= 0.0.0)
+    modules (>= 0.0.0)
+  dmg (2.2.2)
+  docker (0.37.0)
+    apt (>= 0.0.0)
+    aufs (>= 0.1.1)
+    device-mapper (>= 0.1.0)
+    git (>= 0.0.0)
+    golang (>= 0.0.0)
+    homebrew (>= 0.0.0)
+    iptables (>= 0.0.0)
+    lxc (>= 1.1.6)
+    modules (>= 0.0.0)
+    runit (>= 0.0.0)
+    sysctl (>= 0.0.0)
+    yum-epel (>= 0.0.0)
+  dpkg_autostart (0.1.12)
+  garcon (1.1.2)
+    chef_handler (>= 0.0.0)
+    yum (>= 0.0.0)
+  git (4.2.2)
+    build-essential (>= 0.0.0)
+    dmg (>= 0.0.0)
+    windows (>= 0.0.0)
+    yum-epel (>= 0.0.0)
+  golang (1.5.0)
+  homebrew (1.12.0)
+    build-essential (>= 2.1.2)
+  htpasswd (0.2.4)
+    python (>= 0.0.0)
+  iptables (1.0.0)
+  iptables-ng (2.2.6)
+  java (1.31.0)
+  jenkins (2.2.2)
+    apt (~> 2.0)
+    runit (~> 1.5)
+    yum (~> 3.0)
+  logrotate (1.9.1)
+  lxc (2.0.0)
+    dpkg_autostart (>= 0.1.10)
+    iptables-ng (>= 0.0.0)
+    polipo (>= 0.0.0)
+  modules (0.2.0)
+  nginx (2.7.6)
+    apt (~> 2.2)
+    bluepill (~> 2.3)
+    build-essential (~> 2.0)
+    ohai (~> 2.0)
+    runit (~> 1.2)
+    yum-epel (~> 0.3)
+  nginx-proxy (0.2.1)
+    apache2 (>= 0.0.0)
+    nginx (>= 0.0.0)
+  nodejs (2.4.0)
+    apt (>= 0.0.0)
+    ark (>= 0.0.0)
+    build-essential (>= 0.0.0)
+    homebrew (>= 0.0.0)
+    yum-epel (>= 0.0.0)
+  ntp (1.8.2)
+  ohai (2.0.1)
+  openssl (4.0.0)
+    chef-sugar (>= 0.0.0)
+  os-hardening (1.2.0)
+    apt (>= 0.0.0)
+    sysctl (>= 0.3.0)
+    yum (>= 0.0.0)
+  packagecloud (0.0.17)
+  polipo (0.1.0)
+  postgresql (3.4.18)
+    apt (>= 1.9.0)
+    build-essential (>= 0.0.0)
+    openssl (~> 4.0.0)
+  python (1.4.6)
+    build-essential (>= 0.0.0)
+    yum-epel (>= 0.0.0)
+  redisio (2.3.0)
+    build-essential (>= 0.0.0)
+    ulimit (>= 0.1.2)
+  resolver (1.3.0)
+  rsyslog (1.15.0)
+  rubies (0.1.0)
+    build-essential (>= 0.0.0)
+    chruby_install (>= 0.0.0)
+    ruby_install (>= 0.0.0)
+  ruby_install (1.0.4)
+    apt (>= 0.0.0)
+    ark (>= 0.0.0)
+    yum (>= 0.0.0)
+  runit (1.6.0)
+    packagecloud (>= 0.0.0)
+  ssh-hardening (1.1.0)
+  sudo (2.7.1)
+  supermarket (3.2.1)
+    apt (>= 0.0.0)
+    build-essential (>= 0.0.0)
+    git (>= 0.0.0)
+    nginx (>= 0.0.0)
+    nodejs (>= 0.0.0)
+    packagecloud (>= 0.0.0)
+    postgresql (>= 0.0.0)
+    python (>= 0.0.0)
+    redisio (>= 0.0.0)
+    rubies (>= 0.0.0)
+    runit (>= 0.0.0)
+    yum (>= 0.0.0)
+  sysctl (0.6.2)
+    ohai (>= 0.0.0)
+  thrashmaster (0.1.0)
+    garcon (>= 0.0.0)
+  ulimit (0.3.3)
+  windows (1.36.6)
+    chef_handler (>= 0.0.0)
+  yum (3.6.0)
+  yum-epel (0.6.0)
+    yum (~> 3.0)
