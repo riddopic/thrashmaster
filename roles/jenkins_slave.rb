@@ -10,6 +10,11 @@ default_attributes(
     oracle: {
       accept_oracle_download_terms: true
     }
+  },
+  jenkins: {
+    master: {
+      version: '1.596-1.1'
+    }
   }
 )
 
