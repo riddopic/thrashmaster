@@ -1,9 +1,9 @@
 
 source 'https://supermarket.getchef.com'
 
-group :integration do
-  cookbook 'thrashmaster', path: '.thrashmaster'
-end
+# group :integration do
+#   cookbook 'thrashmaster', path: '.thrashmaster'
+# end
 
 group :community do
   cookbook '7-zip'
