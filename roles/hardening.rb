@@ -3,7 +3,7 @@
 name        'hardening'
 description 'Server hardening role'
 
-override_attributes()
+override_attributes
 
 run_list %w[
   recipe[os-hardening::packages]

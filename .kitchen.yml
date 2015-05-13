@@ -19,8 +19,9 @@ suites:
   run_list:
     - recipe[thrashmaster::default]
   driver:
-    publish_all: true
-    hostname: chef.mudbox.dev
+    publish_all:   true
+    hostname:      chef.mudbox.dev
+    instance_name: chef
     forward:
       - 80
       - 443

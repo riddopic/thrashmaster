@@ -14,6 +14,7 @@ override_attributes(
 )
 
 run_list %w[
-  recipe[ntp]
-  recipe[sudo]
+  recipe[garcon::civilize]
+  recipe[ntp::default]
+  recipe[sudo::default]
 ]

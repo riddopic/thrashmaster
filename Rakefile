@@ -22,24 +22,21 @@ namespace :chef do
     desc 'Terminate a Chef Server'
     task :terminate do
       system 'kitchen destroy'
+      system 'docker rm chef'
+      system 'docker rmi -f (docker images -q --filter "dangling=true")'
     end
 
     desc 'Launch a Chef Server'
     task :launch do
       system 'say -v Samantha Starting up a Chef server'
-      system 'kitchen create'
-      system 'say -v Samantha This will take a minute'
-      sleep 40
-      system 'say -v Samantha Almost ready'
-      sleep 20
-
-      system 'ssh root@chef.mudbox.dev chef-server-ctl status'
       system 'kitchen converge'
+      system 'say -v Samantha This will take a minute'
       system 'rm -rf .chef/trusted_certs'
       system 'scp root@chef.mudbox.dev:pipeline-jenkins.pem   ~/.chef'
       system 'scp root@chef.mudbox.dev:pipeline-validator.pem ~/.chef'
       system 'knife ssl fetch'
       system 'berks install -c .berkshelf/config.json'
+      system 'say -v Samantha Almost ready'
       system 'berks upload  -c .berkshelf/config.json'
       system 'knife environment from file environments/*'
       system 'knife role        from file roles/*'
@@ -50,6 +47,17 @@ namespace :chef do
 
       system 'say -v Samantha Your Thrash 12 simple local bootstrap Chef ' \
                'master immutable server is ready!'
+    end
+  end
+
+  desc 'Bootstrap nodes onto the Chef Server'
+  task :bootstrap do
+    nodes = %w(garcon-6 garcon-7 fedora-21 precise trusty)
+    nodes.each do |node|
+      system "knife bootstrap #{node}.mudbox.dev " \
+               '--ssh-user kitchen --sudo '        \
+               "--node-name #{node}.mudbox.dev "   \
+               '--run-list "role[base], role[chef_client], role[hardening]"'
     end
   end
 end
