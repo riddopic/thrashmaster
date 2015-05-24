@@ -3,7 +3,13 @@
 name        'docker'
 description 'Docker role'
 
-override_attributes
+default_attributes(
+  docker: {
+    package: {
+      repo_url: 'https://get.docker.io/ubuntu'
+    }
+  }
+)
 
 run_list %w[
   recipe[docker::default]

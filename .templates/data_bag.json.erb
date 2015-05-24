@@ -1,0 +1,20 @@
+{
+  "id":           "<%= org_data[:org] %>",
+  "client_name":  "<%= org_data[:user] %>",
+  "organization": "<%= org_data[:org] %>",
+  "chef_server":  "<%= org_data[:chef_server] %>",
+
+  "WARNING!":    "THIS FILE IS AUTO GENERATED, EDITING THIS FILE WILL RESULT",
+  "ASHTUNG!":    "EDITING THIS FILE WILL RESULT IN CATASTROPHIC SYSTEM FAILURE!",
+
+  "chef_repos": [
+    {
+      "name":    "<%= repo_data[:name] %>",
+      "url":     "<%= repo_data[:url] %>",
+      "branch":  "<%= repo_data[:branch] %>",
+      "polling": "<%= repo_data[:polling] %>"
+    }
+  ],
+  "validation_key": "<%= @validation_key %>",
+  "client_key":     "<%= @client_key %>"
+}

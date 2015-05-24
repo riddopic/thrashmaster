@@ -1,0 +1,82 @@
+# encoding: UTF-8
+#
+# Author:    Stefano Harding <riddopic@gmail.com>
+# License:   Apache License, Version 2.0
+# Copyright: (C) 2014-2015 Stefano Harding
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+user = '<%= org_data[:user] %>'
+org  = '<%= org_data[:org] %>'
+home =  ENV['HOME']
+cwd  =  File.dirname(__FILE__)
+
+# -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
+
+log_level                     :info
+log_location                   STDOUT
+node_name                      user
+validation_client_name        "#{org}-validator"
+client_key                     File.join(cwd, "#{org}-#{user}.pem")
+validation_key                 File.join(cwd, "#{org}-validator.pem")
+chef_server_url               "https://chef.mudbox.dev/organizations/#{org}"
+
+cache_type                    'BasicFile'
+cookbook_path                  File.join(home,   'git', 'cookbooks')
+cache_options            path: File.join(home, '.chef', 'checksums')
+syntax_check_cache_path        File.join(home, '.chef', 'syntax_check_cache')
+
+http_proxy                     ENV.fetch('HTTP_PROXY',  nil)
+https_proxy                    ENV.fetch('HTTPS_PROXY', nil)
+no_proxy                       ENV.fetch('NO_PROXY',    nil)
+
+# -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
+
+# knife = {
+#   aws_ssh_key_id:              user,
+#   use_sudo:                    true,
+#   identity_file:               File.join(home, ".ssh/#{user}"),
+#   aws_access_key_id:           ENV.fetch('AWS_ACCESS_KEY_ID',           nil),
+#   aws_secret_access_key:       ENV.fetch('AWS_SECRET_ACCESS_KEY',       nil),
+#   openstack_secret_access_key: ENV.fetch('OPENSTACK_SECRET_ACCESS_KEY', nil),
+#   openstack_access_key_id:     ENV.fetch('OPENSTACK_ACCESS_KEY_ID',     nil),
+#   openstack_ssh_key_id:        ENV.fetch('OPENSTACK_SSH_KEY_ID',        nil),
+#   digital_ocean_client_id:     ENV.fetch('DIGITALOCEAN_CLIENT_ID',      nil),
+#   digital_ocean_api_key:       ENV.fetch('DIGITALOCEAN_API_KEY',        nil),
+#   rackspace_api_username:      ENV.fetch('RACKSPACE_USERNAME',          nil),
+#   rackspace_api_key:           ENV.fetch('RACKSPACE_API_KEY',           nil)
+# }
+
+# -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
+
+# knife[:flavor]               = 'm1.small'
+# knife[:image]                = ''
+# knife[:region]               = 'us-west-2'
+# knife[:availability_zone]    = 'us-west-2c'
+# knife[:aws_user_data]        = ''
+
+# knife[:winrm_user]           = 'Administrator'
+# knife[:winrm_password]       = ''
+# knife[:winrm_port]           = '5985'
+# knife[:winrm_transport]      = 'plaintext'
+# knife[:ca_trust_file]        = ''
+# knife[:kerberos_keytab_file] = ''
+# knife[:kerberos_realm]       = ''
+# knife[:kerberos_service]     = ''
+
+# ----- Ξ ------- 彡 ------- Ξ ------- 彡 ------- Ξ ------- 彡 ------- Ξ ------
+
+# Allow overriding values in this knife.rb
+knife_override = File.join(home, '.chef', 'knife_override.rb')
+Chef::Config.from_file(knife_override) if File.exist?(knife_override)

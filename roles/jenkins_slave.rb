@@ -19,5 +19,7 @@ default_attributes(
 )
 
 run_list %w[
+  role[base]
+  role[chef_client]
   recipe[pipeline::slave]
 ]
