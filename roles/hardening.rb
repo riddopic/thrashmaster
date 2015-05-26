@@ -7,6 +7,7 @@ default_attributes(
   authorization: {
     sudo: {
       groups: ['admin', 'wheel', 'sysadmin'],
+      users:  ['kitchen'],
       passwordless:      true,
       include_sudoers_d: true,
       sudoers_defaults:  ['!requiretty,!lecture,tty_tickets,!fqdn']
@@ -16,6 +17,7 @@ default_attributes(
 
 run_list %w[
   recipe[ntp::default]
+  recipe[users::sysadmins]
   recipe[os-hardening::limits]
   recipe[os-hardening::login_defs]
   recipe[os-hardening::minimize_access]

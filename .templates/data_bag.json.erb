@@ -15,6 +15,6 @@
       "polling": "<%= repo_data[:polling] %>"
     }
   ],
-  "validation_key": "<%= @validation_key %>",
-  "client_key":     "<%= @client_key %>"
+  "validation_key": <%= @validation_key.to_json %>,
+  "client_key":     <%= @client_key.to_json %>
 }
