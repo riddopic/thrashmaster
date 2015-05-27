@@ -17,9 +17,9 @@
 # limitations under the License.
 #
 
-user = '<%= org_data[:user] %>'
-org  = '<%= org_data[:org] %>'
-home =  ENV['HOME']
+user = '<%= o[:user] %>' # (ENV['USER'] || ENV['USERNAME']).downcase
+org  = '<%= o[:org] %>' # ENV['ORGNAME']
+home =  ENV['HOME'] || ENV['HOMEDRIVE']
 cwd  =  File.dirname(__FILE__)
 
 # -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
@@ -30,7 +30,7 @@ node_name                      user
 validation_client_name        "#{org}-validator"
 client_key                     File.join(cwd, "#{org}-#{user}.pem")
 validation_key                 File.join(cwd, "#{org}-validator.pem")
-chef_server_url               "https://chef.mudbox.dev/organizations/#{org}"
+chef_server_url               "<%= o[:chef_server] %>/organizations/#{org}"
 
 cache_type                    'BasicFile'
 cookbook_path                  File.join(home,   'git', 'cookbooks')

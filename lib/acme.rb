@@ -17,26 +17,27 @@
 # limitations under the License.
 #
 
-class TransitionTable
-  class TransitionError < RuntimeError
-    def initialize(state, input)
-      super
-        "No transition from state #{state.inspect} for input #{input.inspect}"
-    end
-  end
-  include Enumerable
+require 'erb'
+require 'rake'
+require 'docker'
+require 'hoodie'
+require 'net/ssh'
 
-  def initialize(transitions)
-    @transitions = transitions
-  end
+require_relative 'acme/utils'
+require_relative 'acme/class_methods'
+require_relative 'acme/machine'
+require_relative 'acme/transition_table'
+require_relative 'acme/container_dsl'
+require_relative 'acme/container'
 
-  def call(state, input)
-    @transitions.fetch([state, input])
-  rescue KeyError
-    raise TransitionError.new(state, input)
-  end
+require_relative 'acme/nodes'
 
-  def each
-    @transitions.each_pair {|key, value| yield *key, *value }
-  end
+module ACME
+  Docker.url = ENV['DOCKER_HOST']
+  Docker.options = {
+    client_cert: File.join(ENV['DOCKER_CERT_PATH'], 'cert.pem'),
+    client_key:  File.join(ENV['DOCKER_CERT_PATH'], 'key.pem'),
+    ssl_ca_file: File.join(ENV['DOCKER_CERT_PATH'], 'ca.pem'),
+    scheme: 'https'
+  }
 end

@@ -1,0 +1,20 @@
+{
+  "id":           "<%= o[:org] %>",
+  "client_name":  "<%= o[:user] %>",
+  "organization": "<%= o[:org] %>",
+  "chef_server":  "<%= o[:chef_server] %>",
+
+  "WARNING!":    "THIS FILE IS AUTO GENERATED, EDITING THIS FILE WILL RESULT",
+  "ASHTUNG!":    "EDITING THIS FILE WILL RESULT IN CATASTROPHIC SYSTEM FAILURE!",
+
+  "chef_repos": [
+    {
+      "name":    "<%= o[:org] %>",
+      "url":     "<%= o[:git_url] %>",
+      "branch":  "<%= o[:branch] %>",
+      "polling": "<%= o[:polling] %>"
+    }
+  ],
+  "validation_key": <%= @validation_key.to_json %>,
+  "client_key":     <%= @client_key.to_json %>
+}

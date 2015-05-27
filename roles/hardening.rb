@@ -7,7 +7,6 @@ default_attributes(
   authorization: {
     sudo: {
       groups: ['admin', 'wheel', 'sysadmin'],
-      users:  ['kitchen'],
       passwordless:      true,
       include_sudoers_d: true,
       sudoers_defaults:  ['!requiretty,!lecture,tty_tickets,!fqdn']

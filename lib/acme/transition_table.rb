@@ -17,16 +17,28 @@
 # limitations under the License.
 #
 
-class Machine
-  def initialize(transition_function, initial_state)
-    @transition_function = transition_function
-    @state = initial_state
-  end
+module ACME
+  class TransitionTable
+    class TransitionError < RuntimeError
+      def initialize(state, input)
+        super "No transition from state #{state.inspect} " \
+              "for input #{input.inspect}"
+      end
+    end
+    include Enumerable
 
-  attr_reader :state
+    def initialize(transitions)
+      @transitions = transitions
+    end
 
-  def send_input(input)
-    @state, output = @transition_function.call(@state, input)
-    output
+    def call(state, input)
+      @transitions.fetch([state, input])
+    rescue KeyError
+      raise TransitionError.new(state, input)
+    end
+
+    def each
+      @transitions.each_pair {|key, value| yield *key, *value }
+    end
   end
 end

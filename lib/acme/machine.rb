@@ -17,16 +17,18 @@
 # limitations under the License.
 #
 
-source 'https://rubygems.org'
+module ACME
+  class Machine
+    def initialize(transition_function, initial_state)
+      @transition_function = transition_function
+      @state = initial_state
+    end
 
-gem 'chef'
-gem 'rake'
-gem 'hoodie'
-gem 'net-ip'
-gem 'berkshelf'
-gem 'kitchen-sync'
-gem 'test-kitchen'
-gem 'public_suffix'
-gem 'kitchen-docker'
-gem 'ruby-progressbar'
-gem 'docker-api', require: 'docker'
+    attr_reader :state
+
+    def send_input(input)
+      @state, output = @transition_function.call(@state, input)
+      output
+    end
+  end
+end
