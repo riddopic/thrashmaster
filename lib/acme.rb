@@ -30,8 +30,6 @@ require_relative 'acme/transition_table'
 require_relative 'acme/container_dsl'
 require_relative 'acme/container'
 
-require_relative 'acme/nodes'
-
 module ACME
   Docker.url = ENV['DOCKER_HOST']
   Docker.options = {

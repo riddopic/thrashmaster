@@ -21,18 +21,6 @@ require 'public_suffix'
 
 module ACME
   class Container
-    # Container state machine transitions.
-    #
-    STATE_TRANSITIONS = TransitionTable.new(
-      # State                Input           Next state            Output
-      [:awaiting_create,    :create   ] => [:awaiting_start,     :do_create   ],
-      [:awaiting_start,     :start    ] => [:awaiting_run_sshd,  :do_start    ],
-      [:awaiting_run_sshd,  :run_sshd ] => [:awaiting_bootstrap, :do_run_sshd ],
-      [:awaiting_bootstrap, :bootstrap] => [:awaiting_stop,      :do_bootstrap],
-      [:awaiting_stop,      :stop     ] => [:awaiting_delete,    :do_stop     ],
-      [:awaiting_delete,    :delete   ] => [:dead_and_gone,      :do_deleted  ]
-    )
-
     attr_accessor :name
     attr_accessor :fqdn
     attr_accessor :image
@@ -43,14 +31,11 @@ module ACME
     attr_accessor :binds
 
     def initialize(name)
-      @machine = Machine.new(STATE_TRANSITIONS, :awaiting_create)
       @name    = name
     end
 
-    def do(event)
-      action = @machine.send_input(event)
-      send(action) unless action.nil?
-      self
+    def state
+      @machine.state
     end
 
     def container
@@ -70,13 +55,15 @@ module ACME
       )
       self
     end
-    alias_method :do_create, :create
 
     def start
       container.start
       self
     end
-    alias_method :do_start, :start
+
+    def exec(cmd)
+      container.exec(cmd) { |stream, chunk| puts "#{fqdn.purple}: #{chunk}" }
+    end
 
     def run_sshd
       cmd = case platform
@@ -95,7 +82,6 @@ module ACME
       container.exec(cmd, detach: true)
       self
     end
-    alias_method :do_run_sshd, :run_sshd
 
     def bootstrap
       unless @roles.nil? || @roles.empty?
@@ -104,7 +90,6 @@ module ACME
         end
       self
     end
-    alias_method :do_bootstrap, :bootstrap
 
     def chef_client
       unless @roles.nil? || @roles.empty?
@@ -112,32 +97,27 @@ module ACME
         container.exec(cmd) { |stream, chunk| puts "#{fqdn.purple}: #{chunk}" }
       end
     end
-    alias_method :do_chef_client, :chef_client
 
     def stop
       container.stop
       self
     end
-    alias_method :do_stop, :stop
 
     def kill
       container.kill(signal: 'SIGHUP')
       sleep 0.5
       self
     end
-    alias_method :do_kill, :kill
 
     def delete
       container.delete(force: true)
       @container = nil
     end
-    alias_method :do_delete, :delete
 
     def created?
       running = Docker::Container.all(all: true)
       running.map { |r| r.info['Names'].include?("/#{@name}") }.any?
     end
-    alias_method :exist?, :created?
 
     def running?
       status['Running']

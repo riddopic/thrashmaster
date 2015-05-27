@@ -17,10 +17,9 @@
 # limitations under the License.
 #
 
+BASEDIR = File.dirname(__FILE__)
 require_relative 'lib/acme'
 include ACME
-
-BASEDIR = File.dirname(__FILE__)
 
 def o
   {
@@ -37,6 +36,62 @@ def o
   }
 end
 
+module ACME
+  container 'consul' do
+    fqdn    'consul.acme.dev'
+    image   'acme/consul'
+  end
+
+  container 'seagull' do
+    fqdn    'seagull.acme.dev'
+    image   'acme/seagull'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    volumes ['/var/run/docker.sock' => {}]
+    binds   ['/var/run/docker.sock:/var/run/docker.sock']
+  end
+
+  container 'kibana' do
+    fqdn    'kibana.acme.dev'
+    image   'acme/kibana'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
+  end
+
+  container 'logstash' do
+    fqdn    'logstash.acme.dev'
+    image   'acme/logstash'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
+  end
+
+  container 'elasticsearch' do
+    fqdn    'elasticsearch.acme.dev'
+    image   'acme/elasticsearch'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
+  end
+
+  container 'chef-server' do
+    fqdn    'chef-server.acme.dev'
+    image   'acme/chef-server'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
+  end
+
+  container 'jenkins' do
+    fqdn    'jenkins.acme.dev'
+    image   'acme/centos-6'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    roles   ['role[base]', 'role[chef_client]', 'role[jenkins_master]']
+  end
+
+  container 'slave' do
+    fqdn    'slave.acme.dev'
+    image   'acme/docker'
+    env     [->{ "JOIN_IP=#{join_ip}" }]
+    roles   ['role[base]', 'role[chef_client]', 'role[jenkins_slave]']
+  end
+end
 
 
 
@@ -114,11 +169,6 @@ end
 
 task :silly do
   puts "\nACME Auto Parts & Plumbing Corporation, Inc.\n".blue
-  puts 'Welcome to ACME Auto Parts & Plumbing, a Wholly-Owned Subsidiary of'
-  puts 'ACME Bait & Tackle Corporation where quality is our #1 dream! This is'
-  puts 'the ACME operations repository of development cooking and pipe laying,'
-  puts 'continuously for delivery, please enjoy the tour.'
-  puts "\nStarting Pipeline Stack".yellow
   Utils::mark_line
   require 'pry'
   binding.pry

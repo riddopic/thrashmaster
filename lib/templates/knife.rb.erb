@@ -24,56 +24,56 @@ cwd  =  File.dirname(__FILE__)
 
 # -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
 
-log_level                     :info
-log_location                   STDOUT
-node_name                      user
-validation_client_name        "#{org}-validator"
-client_key                     File.join(cwd, "#{org}-#{user}.pem")
-validation_key                 File.join(cwd, "#{org}-validator.pem")
-chef_server_url               "<%= o[:chef_server] %>/organizations/#{org}"
+log_level                   :info
+log_location                 STDOUT
+node_name                    user
+validation_client_name      "#{org}-validator"
+client_key                   File.join(cwd, "#{org}-#{user}.pem")
+validation_key               File.join(cwd, "#{org}-validator.pem")
+chef_server_url             "<%= o[:chef_server] %>/organizations/#{org}"
 
-cache_type                    'BasicFile'
-cookbook_path                  File.join(home,   'git', 'cookbooks')
-cache_options            path: File.join(home, '.chef', 'checksums')
-syntax_check_cache_path        File.join(home, '.chef', 'syntax_check_cache')
+cache_type                  'BasicFile'
+cookbook_path                File.join(home,   'git', 'cookbooks')
+cache_options          path: File.join(home, '.chef', 'checksums')
+syntax_check_cache_path      File.join(home, '.chef', 'syntax_check_cache')
 
-http_proxy                     ENV.fetch('HTTP_PROXY',  nil)
-https_proxy                    ENV.fetch('HTTPS_PROXY', nil)
-no_proxy                       ENV.fetch('NO_PROXY',    nil)
-
-# -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
-
-# knife = {
-#   aws_ssh_key_id:              user,
-#   use_sudo:                    true,
-#   identity_file:               File.join(home, ".ssh/#{user}"),
-#   aws_access_key_id:           ENV.fetch('AWS_ACCESS_KEY_ID',           nil),
-#   aws_secret_access_key:       ENV.fetch('AWS_SECRET_ACCESS_KEY',       nil),
-#   openstack_secret_access_key: ENV.fetch('OPENSTACK_SECRET_ACCESS_KEY', nil),
-#   openstack_access_key_id:     ENV.fetch('OPENSTACK_ACCESS_KEY_ID',     nil),
-#   openstack_ssh_key_id:        ENV.fetch('OPENSTACK_SSH_KEY_ID',        nil),
-#   digital_ocean_client_id:     ENV.fetch('DIGITALOCEAN_CLIENT_ID',      nil),
-#   digital_ocean_api_key:       ENV.fetch('DIGITALOCEAN_API_KEY',        nil),
-#   rackspace_api_username:      ENV.fetch('RACKSPACE_USERNAME',          nil),
-#   rackspace_api_key:           ENV.fetch('RACKSPACE_API_KEY',           nil)
-# }
+http_proxy                   ENV.fetch('HTTP_PROXY',  nil)
+https_proxy                  ENV.fetch('HTTPS_PROXY', nil)
+no_proxy                     ENV.fetch('NO_PROXY',    nil)
 
 # -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
 
-# knife[:flavor]               = 'm1.small'
-# knife[:image]                = ''
-# knife[:region]               = 'us-west-2'
-# knife[:availability_zone]    = 'us-west-2c'
-# knife[:aws_user_data]        = ''
+knife = {
+  aws_ssh_key_id:              user,
+  use_sudo:                    true,
+  identity_file:               File.join(home, ".ssh/#{user}"),
+  aws_access_key_id:           ENV.fetch('AWS_ACCESS_KEY_ID',           nil),
+  aws_secret_access_key:       ENV.fetch('AWS_SECRET_ACCESS_KEY',       nil),
+  openstack_secret_access_key: ENV.fetch('OPENSTACK_SECRET_ACCESS_KEY', nil),
+  openstack_access_key_id:     ENV.fetch('OPENSTACK_ACCESS_KEY_ID',     nil),
+  openstack_ssh_key_id:        ENV.fetch('OPENSTACK_SSH_KEY_ID',        nil),
+  digital_ocean_client_id:     ENV.fetch('DIGITALOCEAN_CLIENT_ID',      nil),
+  digital_ocean_api_key:       ENV.fetch('DIGITALOCEAN_API_KEY',        nil),
+  rackspace_api_username:      ENV.fetch('RACKSPACE_USERNAME',          nil),
+  rackspace_api_key:           ENV.fetch('RACKSPACE_API_KEY',           nil)
+}
 
-# knife[:winrm_user]           = 'Administrator'
-# knife[:winrm_password]       = ''
-# knife[:winrm_port]           = '5985'
-# knife[:winrm_transport]      = 'plaintext'
-# knife[:ca_trust_file]        = ''
-# knife[:kerberos_keytab_file] = ''
-# knife[:kerberos_realm]       = ''
-# knife[:kerberos_service]     = ''
+# -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=--- ---=- -=---
+
+knife[:flavor]               = 'm1.small'
+knife[:image]                = ''
+knife[:region]               = 'us-west-2'
+knife[:availability_zone]    = 'us-west-2c'
+knife[:aws_user_data]        = ''
+
+knife[:winrm_user]           = 'Administrator'
+knife[:winrm_password]       = ''
+knife[:winrm_port]           = '5985'
+knife[:winrm_transport]      = 'plaintext'
+knife[:ca_trust_file]        = ''
+knife[:kerberos_keytab_file] = ''
+knife[:kerberos_realm]       = ''
+knife[:kerberos_service]     = ''
 
 # ----- Ξ ------- 彡 ------- Ξ ------- 彡 ------- Ξ ------- 彡 ------- Ξ ------
 

@@ -40,13 +40,6 @@ module ACME
       found.include?(true)
     end
 
-    if const_defined?(:Win32Exts)
-      Win32Exts.concat %w{.exe .com .bat .cmd}
-      Win32Exts.uniq!
-    else
-      Win32Exts = %w{.exe .com .bat .cmd}
-    end
-
     # Returns the columns and lines of the current tty.
     #
     # @return [Integer]

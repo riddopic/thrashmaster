@@ -44,15 +44,16 @@ module ACME
     end
 
     def env(env)
-      @container.env ||= env.map { |e| e.respond_to?(:call) ? e.call : e }
+      env = env.map { |e| e.respond_to?(:call) ? e.call : e }.join(' ')
+      @container.env ||= env
     end
 
     def ports(ports)
-      @container.ports ||= ports
+      @container.ports ||= ports.join(' ')
     end
 
     def volumes(volumes)
-      @container.volumes ||= volumes
+      @container.volumes ||= volumes.join(' ')
     end
 
     def binds(binds)
