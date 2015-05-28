@@ -25,8 +25,6 @@ require 'net/ssh'
 
 require_relative 'acme/utils'
 require_relative 'acme/class_methods'
-require_relative 'acme/machine'
-require_relative 'acme/transition_table'
 require_relative 'acme/container_dsl'
 require_relative 'acme/container'
 
@@ -38,4 +36,20 @@ module ACME
     ssl_ca_file: File.join(ENV['DOCKER_CERT_PATH'], 'ca.pem'),
     scheme: 'https'
   }
+
+  # Hook called when an object is extended with ACME.
+  #
+  # @param [Object] object
+  #
+  # @return [undefined]
+  #
+  # @api private
+  def self.extended(object)
+    super
+    object.instance_eval do
+      extend ACME::Utils
+      extend ACME::Extensions
+    end
+  end
+  private_class_method :extended
 end

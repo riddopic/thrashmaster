@@ -19,7 +19,7 @@
 
 BASEDIR = File.dirname(__FILE__)
 require_relative 'lib/acme'
-include ACME
+extend ACME
 
 def o
   {
@@ -29,7 +29,7 @@ def o
     full_name:   'Mr. Jenkins',
     email:       'jenkins@acme.dev',
     passwd:      'password',
-    chef_server: 'https://chef-server.acme.dev/',
+    chef_server: 'chef-server.acme.dev',
     git_url:     'https://github.com/riddopic/thrashmaster.git',
     branch:      '*/master',
     polling:     '* * * * *'
@@ -40,6 +40,7 @@ module ACME
   container 'consul' do
     fqdn    'consul.acme.dev'
     image   'acme/consul'
+    roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container 'seagull' do
@@ -74,7 +75,9 @@ module ACME
   container 'chef-server' do
     fqdn    'chef-server.acme.dev'
     image   'acme/chef-server'
-    env     [->{ "JOIN_IP=#{join_ip}" }]
+    env     [->{ "JOIN_IP=#{join_ip}" },
+             "PUBLIC_URL=#{o[:chef_server]}",
+             "OC_ID_ADMINISTRATORS=#{o[:jenkins]}"]
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
@@ -93,11 +96,9 @@ module ACME
   end
 end
 
-
-
 desc 'Start a full pipeline stack'
 task :start do
-  amount = ACME::exists?('chef-server') ? 3 : 160
+  amount = exists?('chef-server') ? 3 : 160
 
   puts "\nACME Auto Parts & Plumbing Corporation, Inc.\n".blue
   puts 'Welcome to ACME Auto Parts & Plumbing, a Wholly-Owned Subsidiary of'
@@ -105,12 +106,12 @@ task :start do
   puts 'the ACME operations repository of development cooking and pipe laying,'
   puts 'continuously for delivery, please enjoy the tour.'
   puts "\nStarting Pipeline Stack".yellow
-  Utils::mark_line
-  ACME::docker_kernel
+  mark_line
+  docker_kernel
 
-  ACME::containers.each do |container|
+  containers.each do |container|
     unless container.created?
-      container.do(:create).do(:start).do(:run_sshd)
+      container.create.start.run_sshd
 
       printf "%-60s %10s\n",
              "Starting container #{container.fqdn.red}:",
@@ -121,11 +122,11 @@ task :start do
   end
 
   puts "\nWaiting for Chef server to auto configure:\n".orange
-  Utils::progress_bar amount
-  ACME::create_chef_user o[:user], o[:full_name], o[:email], o[:passwd], o[:org]
-  ACME::create_chef_org  o[:org],  o[:long_name], o[:user]
-  ACME::render_data_bag  o[:org]
-  ACME::render_knife
+  progress_bar amount
+  create_chef_user    o[:user], o[:full_name], o[:email], o[:passwd], o[:org]
+  create_chef_org     o[:org],  o[:long_name], o[:user]
+  render_data_bag     o[:org]
+  render_knife
 
   system 'knife ssl fetch'
   system 'berks install -c .berkshelf/config.json'
@@ -139,18 +140,18 @@ task :start do
   system 'knife cookbook upload pipeline --freeze --force'
 
   # containers.each do |container|
-  ACME::containers.each do |container|
-    Utils::mark_line
+  containers.each do |container|
+    mark_line
     printf "%-60s %10s\n",
            "\nBootstraping container #{container.fqdn.red}:", ''
-    container.do(:bootstrap)
+    container.bootstrap
   end
 end
 
 desc 'Do the Chef'
 task :chef do
-  ACME::containers.each do |container|
-    Utils::mark_line
+  containers.each do |container|
+    mark_line
     printf "%-60s %10s\n",
            "\nExecuting chef-client on container #{container.fqdn.red}:", ''
     container.chef_client
@@ -159,8 +160,8 @@ end
 
 desc 'Stop and cleanup pipeline stack'
 task :clean do
-  ACME::containers.each do |c|
-    Utils::mark_line
+  containers.each do |c|
+    mark_line
     printf "%-60s %10s\n",
            "\nStoping and cleaning up container #{c.fqdn.red}:", ''
     c.created? ? c.running? ? c.stop.delete : c.delete : false
@@ -169,8 +170,7 @@ end
 
 task :silly do
   puts "\nACME Auto Parts & Plumbing Corporation, Inc.\n".blue
-  Utils::mark_line
+  mark_line
   require 'pry'
   binding.pry
 end
-

@@ -18,7 +18,14 @@
 #
 
 module ACME
-  module ClassMethods
+  module Extensions
+    # Methods are also available as module-level methods as well as a mixin.
+    extend self
+
+    def containers
+      ACME.registry
+    end
+
     # Returns a list of all containers from the endpoint.
     #
     # @param [Boolean] all
@@ -121,24 +128,5 @@ module ACME
       end
       puts
     end
-
-    def containers
-      ACME.registry
-    end
-
-    # Hook called when module is included, extends a descendant with class
-    # and instance methods.
-    #
-    # @param [Module] descendant
-    #   the module or class including Garcon::Resource::LazyEval
-    #
-    # @return [self]
-    #
-    def included(descendant)
-      super
-      descendant.extend ClassMethods
-    end
   end
-
-  extend ClassMethods
 end
