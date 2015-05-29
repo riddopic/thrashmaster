@@ -25,6 +25,7 @@ default_attributes(
 )
 
 run_list %w[
+  recipe[baseos::default]
   recipe[chef_handler::default]
   recipe[omnibus_updater]
   recipe[cron::default]

@@ -22,10 +22,6 @@ module ACME
     # Methods are also available as module-level methods as well as a mixin.
     extend self
 
-    def containers
-      ACME.registry
-    end
-
     # Returns a list of all containers from the endpoint.
     #
     # @param [Boolean] all
@@ -38,15 +34,27 @@ module ACME
       Docker::Container.all(all: true)
     end
 
+    # Request a Container by ID or name.
+    #
+    # @param [String] name
+    #   The name of the container to get.
+    #
+    # @return [Docker::Container]
+    #
     def get(name)
       Docker::Container.get(name)
     end
 
     # Check to see if a given container exists, it is considered to exists if
-    # it has a state of restarting, running, paused, exited
+    # it has a state of restarting, running, paused, or exited.
     #
-    def exists?(id)
-      running.map { |r| r.info['Names'].include?("/#{id}") }.any?
+    # @param [String] name
+    #   The name of the container to get.
+    #
+    # @return [Boolean]
+    #
+    def exists?(name)
+      running.map { |r| r.info['Names'].include?("/#{name}") }.any?
     end
 
     def join_ip
@@ -55,9 +63,14 @@ module ACME
       nil
     end
 
+    # TODO -- this is silly
+    def ok;      'OK'.green;       end
+    def warning; 'Warning'.yellow; end
+    def fail;    'Fail'.red;       end
+
     def chef_user_exists?(user)
       cmd = ['bash', '-c', 'chef-server-ctl user-list']
-      get('chef-server').exec(cmd).flatten[0].split.include?(user)
+      get('chef').exec(cmd).flatten[0].split.include?(user)
     end
 
     def create_chef_user(user, full_name, email, passwd, org)
@@ -69,7 +82,7 @@ module ACME
         cmd  = ['chef-server-ctl', 'user-create']
         cmd << [user, "'#{full_name}'", email, passwd]
         cmd  = ['bash', '-c', cmd.join(' ')]
-        @client_key = get('chef-server').exec(cmd).flatten[0]
+        @client_key = get('chef').exec(cmd).flatten[0]
         pemfile = File.join('.chef', "#{org}-#{user}.pem")
         open(pemfile, File::CREAT|File::TRUNC|File::RDWR, 0644) do |file|
           file << @client_key
@@ -79,7 +92,7 @@ module ACME
 
     def chef_org_exists?(org)
       cmd = ['bash', '-c', 'chef-server-ctl org-list']
-      get('chef-server').exec(cmd).flatten[0].split.include?(org)
+      get('chef').exec(cmd).flatten[0].split.include?(org)
     end
 
     def create_chef_org(org, long_name, user)
@@ -91,7 +104,7 @@ module ACME
         cmd  = ['chef-server-ctl', 'org-create']
         cmd << [org, "'#{long_name}'", '--association', user]
         cmd  = ['bash', '-c', cmd.join(' ')]
-        @validation_key = get('chef-server').exec(cmd).flatten[0]
+        @validation_key = get('chef').exec(cmd).flatten[0]
         open(pemfile, File::CREAT|File::TRUNC|File::RDWR, 0644) do |file|
           file << @validation_key
         end

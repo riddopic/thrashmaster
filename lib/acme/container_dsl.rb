@@ -61,18 +61,20 @@ module ACME
     end
   end
 
-  @registry ||= []
+  @containers ||= []
 
-  def self.registry
-    @registry
+  class << self
+    attr_accessor :containers
   end
 
-  def self.register(container)
-    @registry << container
+  def self.register(name, container)
+    @containers << container
+    instance_variable_set("@#{name}", container)
+    self.class.send(:attr_accessor, name)
   end
 
   def self.deregister(container)
-    @registry.delete(container)
+    @containers.delete(container)
   end
 
   def self.container(name, &block)
@@ -84,7 +86,7 @@ module ACME
     # Eval the container block within the ContainerDSL instance.
     container_dsl.instance_eval(&block)
     # Add the container to the registry.
-    register(container)
+    register(name, container)
     # Return the finished container
     container
   end

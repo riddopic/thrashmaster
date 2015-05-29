@@ -37,5 +37,6 @@ default_attributes(
 run_list %w[
   role[base]
   role[chef_client]
+  recipe[baseos::default]
   recipe[pipeline::master]
 ]

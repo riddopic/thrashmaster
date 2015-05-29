@@ -24,9 +24,10 @@ require 'hoodie'
 require 'net/ssh'
 
 require_relative 'acme/utils'
-require_relative 'acme/class_methods'
+require_relative 'acme/extensions'
 require_relative 'acme/container_dsl'
 require_relative 'acme/container'
+require_relative 'acme/prerequisites'
 
 module ACME
   Docker.url = ENV['DOCKER_HOST']

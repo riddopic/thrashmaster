@@ -21,6 +21,12 @@ BASEDIR = File.dirname(__FILE__)
 require_relative 'lib/acme'
 extend ACME
 
+if ENV["USER"] == "root"
+  raise "Do not run this as root, do not run anything as root, forget the word"\
+        "root! Bad, bad things could happen, then again, it could also work..."
+  exit(1)
+end
+
 def o
   {
     org:         'acme',
@@ -29,7 +35,7 @@ def o
     full_name:   'Mr. Jenkins',
     email:       'jenkins@acme.dev',
     passwd:      'password',
-    chef_server: 'chef-server.acme.dev',
+    chef_server: 'chef.acme.dev',
     git_url:     'https://github.com/riddopic/thrashmaster.git',
     branch:      '*/master',
     polling:     '* * * * *'
@@ -39,13 +45,13 @@ end
 module ACME
   container 'consul' do
     fqdn    'consul.acme.dev'
-    image   'acme/consul'
+    image   'riddopic/consul'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container 'seagull' do
     fqdn    'seagull.acme.dev'
-    image   'acme/seagull'
+    image   'riddopic/seagull'
     env     [->{ "JOIN_IP=#{join_ip}" }]
     volumes ['/var/run/docker.sock' => {}]
     binds   ['/var/run/docker.sock:/var/run/docker.sock']
@@ -53,44 +59,44 @@ module ACME
 
   container 'kibana' do
     fqdn    'kibana.acme.dev'
-    image   'acme/kibana'
+    image   'riddopic/kibana'
     env     [->{ "JOIN_IP=#{join_ip}" }]
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container 'logstash' do
     fqdn    'logstash.acme.dev'
-    image   'acme/logstash'
+    image   'riddopic/logstash'
     env     [->{ "JOIN_IP=#{join_ip}" }]
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container 'elasticsearch' do
     fqdn    'elasticsearch.acme.dev'
-    image   'acme/elasticsearch'
+    image   'riddopic/elasticsearch'
     env     [->{ "JOIN_IP=#{join_ip}" }]
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container 'chef-server' do
-    fqdn    'chef-server.acme.dev'
-    image   'acme/chef-server'
+  container 'chef' do
+    fqdn    'chef.acme.dev'
+    image   'riddopic/chef-server'
     env     [->{ "JOIN_IP=#{join_ip}" },
-             "PUBLIC_URL=#{o[:chef_server]}",
+             "PUBLIC_URL=https://#{o[:chef_server]}",
              "OC_ID_ADMINISTRATORS=#{o[:jenkins]}"]
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container 'jenkins' do
     fqdn    'jenkins.acme.dev'
-    image   'acme/centos-6'
+    image   'riddopic/centos-6'
     env     [->{ "JOIN_IP=#{join_ip}" }]
     roles   ['role[base]', 'role[chef_client]', 'role[jenkins_master]']
   end
 
   container 'slave' do
     fqdn    'slave.acme.dev'
-    image   'acme/docker'
+    image   'riddopic/docker'
     env     [->{ "JOIN_IP=#{join_ip}" }]
     roles   ['role[base]', 'role[chef_client]', 'role[jenkins_slave]']
   end
@@ -98,7 +104,7 @@ end
 
 desc 'Start a full pipeline stack'
 task :start do
-  amount = exists?('chef-server') ? 3 : 160
+  amount = exists?('chef') ? 3 : 160
 
   puts "\nACME Auto Parts & Plumbing Corporation, Inc.\n".blue
   puts 'Welcome to ACME Auto Parts & Plumbing, a Wholly-Owned Subsidiary of'
@@ -107,30 +113,48 @@ task :start do
   puts 'continuously for delivery, please enjoy the tour.'
   puts "\nStarting Pipeline Stack".yellow
   mark_line
+
+  c = ACME.consul
+  c.created? ? c.started? ? c.run : c.start.run : c.create.start.run
+  printf "%-60s %-10s\n",
+         "Starting container #{c.fqdn.orange}:", "[#{c.ip.yellow}]"
+
+  ACME::Prerequisites.validate
+
   docker_kernel
 
-  containers.each do |container|
-    unless container.created?
-      container.create.start.run_sshd
+  ACME.containers.each do |c|
+    unless c.created?
+      c.create.start.run
 
-      printf "%-60s %10s\n",
-             "Starting container #{container.fqdn.red}:",
-             "[#{container.ip.yellow}]"
-      # Give the Consul node time to get an IP.
-      sleep 2 if container.name == 'consul'
+      printf "%-60s %-10s\n",
+             "Starting container #{c.fqdn.orange}:", "[#{c.ip.yellow}]"
     end
   end
 
-  puts "\nWaiting for Chef server to auto configure:\n".orange
+  puts "\nWaiting for Chef server to auto configure:\n".red
   progress_bar amount
-  create_chef_user    o[:user], o[:full_name], o[:email], o[:passwd], o[:org]
-  create_chef_org     o[:org],  o[:long_name], o[:user]
-  render_data_bag     o[:org]
+  puts
+
+  # run (method, discription, result)
+
+  printf "%-60s %-10s\n",
+         "Creating '#{o[:user].orange}' user on the Chef server:", "[#{ok}]"
+  create_chef_user o[:user], o[:full_name], o[:email], o[:passwd], o[:org]
+
+  printf "%-60s %-10s\n", "Creating #{o[:long_name].orange} org:", "[#{ok}]"
+  create_chef_org o[:org], o[:long_name], o[:user]
+
+  printf "%-60s %-10s\n",
+         "Creating data bags for #{o[:org].orange} org:", "[#{ok}]"
+  render_data_bag o[:org]
   render_knife
 
+  printf "%-60s %-10s\n", "Fetching server SSL certificates:", "[#{warning}]"
   system 'knife ssl fetch'
+
   system 'berks install -c .berkshelf/config.json'
-  system 'berks upload -c .berkshelf/config.json'
+  system 'berks upload  -c .berkshelf/config.json'
   system 'knife environment from file environments/*'
   system 'knife role from file roles/*'
   system 'knife data bag create chef_org'
@@ -139,36 +163,34 @@ task :start do
   system 'knife data bag from file users data_bag/users/*'
   system 'knife cookbook upload pipeline --freeze --force'
 
-  # containers.each do |container|
-  containers.each do |container|
+  ACME.containers.each do |c|
     mark_line
-    printf "%-60s %10s\n",
-           "\nBootstraping container #{container.fqdn.red}:", ''
-    container.bootstrap
+    printf "%-60s %-10s\n", "\nBootstraping container #{c.fqdn.red}:", ''
+    c.bootstrap
   end
 end
 
 desc 'Do the Chef'
 task :chef do
-  containers.each do |container|
+  ACME.containers.each do |c|
     mark_line
-    printf "%-60s %10s\n",
-           "\nExecuting chef-client on container #{container.fqdn.red}:", ''
-    container.chef_client
+    printf "%-60s %-10s\n",
+           "\nExecuting chef-client on container #{c.fqdn.red}:", ''
+    c.chef_client
   end
 end
 
 desc 'Stop and cleanup pipeline stack'
 task :clean do
-  containers.each do |c|
+  ACME.containers.each do |c|
     mark_line
-    printf "%-60s %10s\n",
+    printf "%-60s %-10s\n",
            "\nStoping and cleaning up container #{c.fqdn.red}:", ''
-    c.created? ? c.running? ? c.stop.delete : c.delete : false
+    c.created? ? c.started? ? c.stop.delete : c.delete : false
   end
 end
 
-task :silly do
+task :debug do
   puts "\nACME Auto Parts & Plumbing Corporation, Inc.\n".blue
   mark_line
   require 'pry'

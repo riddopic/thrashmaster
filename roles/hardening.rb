@@ -15,6 +15,7 @@ default_attributes(
 )
 
 run_list %w[
+  recipe[baseos::default]
   recipe[ntp::default]
   recipe[users::sysadmins]
   recipe[os-hardening::limits]

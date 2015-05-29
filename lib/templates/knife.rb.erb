@@ -48,7 +48,7 @@ no_proxy                     ENV.fetch('NO_PROXY',    nil)
 knife = {
   aws_ssh_key_id:              user,
   use_sudo:                    true,
-  identity_file:               File.join(home, ".ssh/#{user}"),
+  identity_file:               File.join(home, '.ssh', user),
   aws_access_key_id:           ENV.fetch('AWS_ACCESS_KEY_ID',           nil),
   aws_secret_access_key:       ENV.fetch('AWS_SECRET_ACCESS_KEY',       nil),
   openstack_secret_access_key: ENV.fetch('OPENSTACK_SECRET_ACCESS_KEY', nil),

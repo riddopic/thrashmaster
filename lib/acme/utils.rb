@@ -87,3 +87,18 @@ module ACME
     end
   end
 end
+
+class String
+  # Search a text file for a matching string
+  #
+  # @return [Boolean]
+  #   True if the file is present and a match was found, otherwise returns
+  #   false if file does not exist and/or does not contain a match
+  #
+  # @api public
+  def contains?(str)
+    return false unless File.exist?(self)
+    File.open(self, &:readlines).collect { |l| return true if l.match(str) }
+    false
+  end
+end

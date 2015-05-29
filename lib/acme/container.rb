@@ -21,18 +21,18 @@ require 'public_suffix'
 
 module ACME
   class Container
-    # @!attribute [w] :name
-    #   Assign a unique name identifier for this container instance.
+    # @!attribute [rw] :name
+    #   Access a unique name identifier for this container instance.
     #   @return [String] Container Identification.
-    attr_writer :name
-    # @!attribute [w] :fqdn
-    #   Assign the fully qualified host name of the container instance.
+    attr_accessor :name
+    # @!attribute [rw] :fqdn
+    #   Access the fully qualified host name of the container instance.
     #   @return [String] Container hostname.
-    attr_writer :fqdn
-    # @!attribute [w] :image
-    #   Assign a docker image of the container instance.
+    attr_accessor :fqdn
+    # @!attribute [rw] :image
+    #   Access the docker image of the container instance.
     #   @return [String]
-    attr_writer :image
+    attr_accessor :image
     # @!attribute [rw] :roles
     #   Access the Chef roles for this instance of container.
     #   @return [Array]
@@ -61,14 +61,6 @@ module ACME
     #   read-only inside the container).
     #   @return [Array]
     attr_accessor :binds
-    # @!attribute [r] :platform
-    #   Returns the platform for this instance of container.
-    #   @return [String]
-    attr_reader :platform
-    # @!attribute [r] :platform_version
-    #   Returns the platform version for this instance of container.
-    #   @return [String]
-    attr_reader :platform_version
 
     def initialize(name)
       @name = name
@@ -124,8 +116,8 @@ module ACME
     #
     # @return [Docker::Container]
     #
-    def run_sshd
-      cmd = case @platform
+    def run
+      cmd = case platform
             when 'alpine'
               alpine
             when 'rhel', 'centos', 'fedora'
@@ -148,10 +140,10 @@ module ACME
     #   The output (result) of the chef-client run.
     #
     def bootstrap
-      unless @roles.nil? || @roles.empty? || @platform == 'alpine'
+      unless @roles.nil? || @roles.empty? || platform == 'alpine'
         system "knife bootstrap #{@fqdn} -x kitchen -N #{@name} " \
                "-r '#{@roles.join(', ')}' --sudo"
-        end
+      end
       self
     end
 
@@ -161,7 +153,7 @@ module ACME
     #   The output (result) of the chef-client run.
     #
     def chef_client
-      unless @roles.nil? || @roles.empty? || @platform == 'alpine'
+      unless @roles.nil? || @roles.empty? || platform == 'alpine'
         cmd = ['chef-client']
         container.exec(cmd) { |stream, chunk| puts "#{fqdn.purple}: #{chunk}" }
       end
@@ -217,7 +209,7 @@ module ACME
     #
     # @return [Boolean]
     #
-    def running?
+    def started?
       status['Running']
     end
 
