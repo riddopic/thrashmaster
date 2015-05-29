@@ -12,13 +12,19 @@ default_attributes(
       hour: 7,
       monthly: 'fourth wednesday'
     }
+  },
+  authorization: {
+    sudo: {
+      groups:          ['admin', 'wheel', 'sysadmin'],
+      passwordless:      true,
+      include_sudoers_d: true,
+      sudoers_defaults:  ['!requiretty,!lecture,tty_tickets,!fqdn']
+    }
   }
 )
 
 run_list %w[
   recipe[baseos::default]
-  role[chef_client]
-  role[auto_patch]
   recipe[garcon::civilize]
   recipe[ntp::default]
   recipe[sudo::default]

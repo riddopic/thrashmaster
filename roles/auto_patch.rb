@@ -11,5 +11,6 @@ default_attributes(
 )
 
 run_list %w[
+  recipe[baseos::default]
   recipe[auto-patch::default]
 ]

@@ -3,21 +3,11 @@
 name        'hardening'
 description 'Server hardening role'
 
-default_attributes(
-  authorization: {
-    sudo: {
-      groups: ['admin', 'wheel', 'sysadmin'],
-      passwordless:      true,
-      include_sudoers_d: true,
-      sudoers_defaults:  ['!requiretty,!lecture,tty_tickets,!fqdn']
-    }
-  }
-)
+default_attributes
 
 run_list %w[
   recipe[baseos::default]
   recipe[ntp::default]
-  recipe[users::sysadmins]
   recipe[os-hardening::limits]
   recipe[os-hardening::login_defs]
   recipe[os-hardening::minimize_access]
@@ -27,5 +17,4 @@ run_list %w[
   recipe[os-hardening::securetty]
   recipe[os-hardening::suid_sgid]
   recipe[ssh-hardening::default]
-  recipe[sudo::default]
 ]
