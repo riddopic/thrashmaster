@@ -21,6 +21,9 @@ require_relative 'os'
 require_relative 'utils'
 
 module ACME
+  # Sanity check the environment and attempt to validate and provide better
+  # errors if nil for no explicit conversion of String to Symbol.
+  #
   module Prerequisites
     include Utils
 
@@ -29,20 +32,21 @@ module ACME
 
     def validate
       if OS.mac?
-        printf "%-60s %-10s\n",
-               'Checking for docker machine:', "[#{docker?}]"
-        printf "%-60s %-10s\n",
-               'Checking for docker environment variables:', "[#{docker_vars?}]"
-        printf "%-60s %-10s\n",
-               'Checking for docker certificates:', "[#{docker_certs?}]"
-        printf "%-60s %-10s\n",
-               'Checking for local resolver:', "[#{resolver?}]"
-        printf "%-60s %-10s\n",
-               'Checking for Chef DK:', "[#{chefdk?}]"
-
+        check_docker
+        printf "%-70s %-10s\n", 'Checking for local resolver:', "[#{resolver?}]"
+        printf "%-70s %-10s\n", 'Checking for Chef DK:',        "[#{chefdk?}]"
       else
-        put "This OS has not been tested to work, good luck..."
+        put 'This OS has not been tested to work, good luck...'
       end
+    end
+
+    def check_docker
+      printf "%-70s %-10s\n",
+             'Checking for docker machine:', "[#{docker?}]"
+      printf "%-70s %-10s\n",
+             'Checking for docker environment variables:', "[#{docker_vars?}]"
+      printf "%-70s %-10s\n",
+             'Checking for docker certificates:', "[#{docker_certs?}]"
     end
 
     private
@@ -80,9 +84,8 @@ module ACME
     end
 
     def docker_certs?
-      if %w[cert.pem key.pey ca.pem].map { |file|
-           File.exist?(File.join ENV['DOCKER_CERT_PATH'], 'cert.pem')
-         }.all?
+      pems = %w[cert.pem key.pem ca.pem]
+      if pems.map { |f| File.exist?(File.join ENV['DOCKER_CERT_PATH'], f) }.all?
         'OK'.green
       else
         'Warning'.yellow

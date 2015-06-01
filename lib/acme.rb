@@ -17,19 +17,28 @@
 # limitations under the License.
 #
 
-require 'erb'
-require 'rake'
 require 'docker'
 require 'hoodie'
 require 'net/ssh'
 
 require_relative 'acme/utils'
+require_relative 'acme/proxy'
 require_relative 'acme/extensions'
 require_relative 'acme/container_dsl'
+require_relative 'acme/chef_server'
 require_relative 'acme/container'
 require_relative 'acme/prerequisites'
 
+# ACME Home Appliance & Sushi and Pet Supply, Inc.
+#
+# A Wholly-Owned Subsidiary of ACME Bail Bonds & Investment Corporation.
+#
+# Quality is our #1 dream!
+#
 module ACME
+  # Construct Docker API connection using the environment variables from the
+  # invoking shell.
+  #
   Docker.url = ENV['DOCKER_HOST']
   Docker.options = {
     client_cert: File.join(ENV['DOCKER_CERT_PATH'], 'cert.pem'),
@@ -38,13 +47,70 @@ module ACME
     scheme: 'https'
   }
 
+  @containers ||= []
+
+  class << self
+    attr_accessor :containers
+  end
+
+  # Register a new container, note that we do not check for duplicates.
+  #
+  # @param [String] name
+  #   The name of the container to register.
+  #
+  # @param [ACME::Container] container
+  #   The container object.
+  #
+  def self.register(name, container)
+    @containers << container
+    instance_variable_set("@#{name}", container)
+    self.class.send(:attr_accessor, name)
+  end
+
+  # Deregister a container.
+  #
+  # @param [String] name
+  #   The name of the container to deregister.
+  #
+  def self.deregister(name)
+    @containers.delete(name)
+  end
+
+  # Create a new container using the DSL.
+  #
+  # @param [String] name
+  #   The name of the container to create.
+  #
+  # @param [Proc] block
+  #   A block containing options for the container.
+  #
+  def self.container(name, &block)
+    container     = Container.new(name)
+    container_dsl = ContainerDSL.new(container)
+    container_dsl.instance_eval(&block)
+    register name, container
+    container
+  end
+
+  # Creates a proc to be evaluated when called with `#.call'.
+  #
+  # @param [Proc] block
+  #   The block to lazy evaluate.
+  #
+  # @return [LazyEvaluator]
+  #
+  def lazy(&block)
+    ACME::LazyEvaluator.new(&block)
+  end
+
+  class LazyEvaluator < Proc; end
+
   # Hook called when an object is extended with ACME.
   #
   # @param [Object] object
   #
   # @return [undefined]
   #
-  # @api private
   def self.extended(object)
     super
     object.instance_eval do

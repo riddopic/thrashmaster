@@ -20,7 +20,13 @@
 require 'public_suffix'
 
 module ACME
+  # Container objects form the basis of the container class, also known as the
+  # dockers. These dockers are created, started, run, bootstraped and Chefed to
+  # create the ACME Jelly and Wax Co. & Construction Supply.
+  #
   class Container
+    include ACME
+
     # @!attribute [rw] :name
     #   Access a unique name identifier for this container instance.
     #   @return [String] Container Identification.
@@ -61,7 +67,17 @@ module ACME
     #   read-only inside the container).
     #   @return [Array]
     attr_accessor :binds
+    # @!attribute [rw] :privileged
+    #   Give extended privileges to this container.
+    #   @return [undefined]
+    attr_accessor :privileged
 
+    # Constructor for new container instance.
+    #
+    # @param [String] name
+    #
+    # @return [ACME::Container]
+    #
     def initialize(name)
       @name = name
     end
@@ -72,6 +88,46 @@ module ACME
     #
     def container
       @container ||= Docker::Container.get(@name)
+    rescue Docker::Error::NotFoundError
+      @container = nil
+    end
+
+    # Returns a hash of exposed ports for the container.
+    #
+    # @return [Hash]
+    #
+    def exposed_ports
+      { 22 => {} }.merge(Hash.new @ports)
+    end
+
+    # Returns a hash of the host_config setting for the container.
+    #
+    # @return [Hash]
+    #
+    def host_config
+      { 'Binds' => @binds, 'Privileged' => @privileged }
+    end
+
+    # Retrieve the domainname for the container.
+    #
+    # @return [String]
+    #
+    def domain
+      @domain ||= PublicSuffix.parse(@fqdn).domain
+    end
+
+    # Evaluates the environment.
+    #
+    # @return [String]
+    #
+    def env # TODO: Cleanup...
+      Proxy.running? ? [@env, Proxy.env, Proxy.no_proxy] : @env
+      # return unless @env.blank? || @env.nil?
+      # if @env.respond_to?(:each)
+      #   @env.map { |e| e.respond_to?(:call) ? e.call : e }.join(' ')
+      # elsif @env.respond_to?(:call)
+      #   @env.call
+      # end
     end
 
     # Create a container.
@@ -82,13 +138,12 @@ module ACME
       Docker::Container.create(
         'name'         => @name,
         'Hostname'     => @name,
-        'Domainname'   => PublicSuffix.parse(@fqdn).domain,
-        'Env'          => @env,
+        'Domainname'   => domain,
+        'Env'          => env.join("\n"),
         'Image'        => @image,
         'Volumes'      => @volumes,
-        'HostConfig'   => { 'Binds' => @binds },
-        'ExposedPorts' => { 22 => {} }.merge(Hash.new @ports)
-      )
+        'ExposedPorts' => exposed_ports,
+        'HostConfig'   => host_config)
       self
     end
 
@@ -109,7 +164,7 @@ module ACME
     # @return [Docker::Container]
     #
     def exec(cmd)
-      container.exec(cmd) { |stream, chunk| puts "#{fqdn.purple}: #{chunk}" }
+      container.exec(cmd) { |_, chunk| puts "#{fqdn.purple}: #{chunk}" }
     end
 
     # Execute a SSH daemon on the container.
@@ -117,21 +172,26 @@ module ACME
     # @return [Docker::Container]
     #
     def run
-      cmd = case platform
-            when 'alpine'
-              alpine
-            when 'rhel', 'centos', 'fedora'
-              rhel
-            when 'debian', 'ubuntu'
-              debian
-            else
-              raise "Unknown platform '#{platform}'"
-            end
-      cmd << '-o PasswordAuthentication=yes -o UsePrivilegeSeparation=no'
+      cmd  = platform_opts
+      cmd << '-o PasswordAuthentication=yes'
+      cmd << '-o UsePrivilegeSeparation=no'
       cmd << '-o PidFile=/tmp/sshd.pid'
       cmd = ['sh', '-c', cmd.join(' ')]
       container.exec(cmd, detach: true)
       self
+    end
+
+    def platform_opts
+      case platform
+      when 'alpine'
+        alpine
+      when 'rhel', 'centos', 'fedora'
+        rhel
+      when 'debian', 'ubuntu'
+        debian
+      else
+        raise "Unknown platform '#{platform}'"
+      end
     end
 
     # Bootstraps the container with Chef.
@@ -141,6 +201,11 @@ module ACME
     #
     def bootstrap
       unless @roles.nil? || @roles.empty? || platform == 'alpine'
+        if platform =~ /(debian|ubuntu)/
+          container.exec(['sh', '-c', 'apt-get-min update']) do |_, chunk|
+            puts "#{fqdn.purple}: #{chunk}"
+          end
+        end
         system "knife bootstrap #{@fqdn} -x kitchen -N #{@name} " \
                "-r '#{@roles.join(', ')}' --sudo"
       end
@@ -153,10 +218,9 @@ module ACME
     #   The output (result) of the chef-client run.
     #
     def chef_client
-      unless @roles.nil? || @roles.empty? || platform == 'alpine'
-        cmd = ['chef-client']
-        container.exec(cmd) { |stream, chunk| puts "#{fqdn.purple}: #{chunk}" }
-      end
+      return unless @roles.nil? || @roles.empty? || platform == 'alpine'
+      cmd = ['chef-client']
+      container.exec(cmd) { |_, chunk| puts "#{fqdn.purple}: #{chunk}" }
     end
 
     # Stop the container, will raise a `Docker::Error::NotFoundError` if the
@@ -275,26 +339,28 @@ module ACME
       osver[1]
     end
 
-    private #        P R O P R I E T À   P R I V A T A   Vietato L'accesso
+    private
 
     def alpine
-      cmd  = ["apk add --update openssh sudo bash &&\n"]
-      cmd << ["ssh-keygen -A &&\n"]
-      cmd << ['/usr/sbin/sshd -D -o UseDNS=no']
+      [ 'apk add --update openssh sudo bash', 'ssh-keygen -A'
+      ].each { |cmd| container.exec(['sh', '-c', cmd], detach: true) }
+      ['/usr/sbin/sshd -D -o UseDNS=no']
     end
 
     def rhel
-      cmd  = ["yum clean all &&\n"]
-      cmd << ["yum -y install sudo openssh-server openssh-clients   &&\n"]
-      cmd << ["ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' &&\n"]
-      cmd << ["ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N '' &&\n"]
-      cmd << ['/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no']
+      [ 'yum clean all',
+        'yum -y install sudo openssh-server openssh-clients',
+        'ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""',
+        'ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""'
+      ].each { |cmd| container.exec(['sh', '-c', cmd], detach: true) }
+      ['/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no']
     end
 
     def debian
-      cmd  = ["apt-get-min update &&\n"]
-      cmd << ["apt-get-install-min sudo openssh-server curl lsb-release &&\n"]
-      cmd << ['/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no']
+      [ 'apt-get-min update',
+        'apt-get-install-min sudo openssh-server curl lsb-release'
+      ].each { |cmd| container.exec(['sh', '-c', cmd], detach: true) }
+      ['/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no']
     end
 
     def osver

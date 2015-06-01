@@ -18,14 +18,11 @@
 #
 
 module ACME
+  # Assist in the DSL of Container class objects, makes it possible to
+  # syntactically go where no artificial sweetner has gone before.
+  #
   class ContainerDSL
-
-    def join_ip
-      @ip ||= Docker::Container.get('consul').
-              json['NetworkSettings']['IPAddress']
-    rescue Docker::Error::NotFoundError
-      nil
-    end
+    include ACME
 
     def initialize(container)
       @container = container
@@ -39,12 +36,15 @@ module ACME
       @container.image = image
     end
 
+    def privileged(privileged = false)
+      @container.privileged ||= privileged
+    end
+
     def roles(roles)
       @container.roles ||= roles
     end
 
     def env(env)
-      env = env.map { |e| e.respond_to?(:call) ? e.call : e }.join(' ')
       @container.env ||= env
     end
 
@@ -59,35 +59,5 @@ module ACME
     def binds(binds)
       @container.binds ||= binds
     end
-  end
-
-  @containers ||= []
-
-  class << self
-    attr_accessor :containers
-  end
-
-  def self.register(name, container)
-    @containers << container
-    instance_variable_set("@#{name}", container)
-    self.class.send(:attr_accessor, name)
-  end
-
-  def self.deregister(container)
-    @containers.delete(container)
-  end
-
-  def self.container(name, &block)
-    # Create a new Container object instance for our new container.
-    container = Container.new(name)
-    # Create a new instance of our Container DSL and pass it our newly
-    # instantiated container.
-    container_dsl = ContainerDSL.new(container)
-    # Eval the container block within the ContainerDSL instance.
-    container_dsl.instance_eval(&block)
-    # Add the container to the registry.
-    register(name, container)
-    # Return the finished container
-    container
   end
 end

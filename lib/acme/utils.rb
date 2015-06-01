@@ -21,6 +21,9 @@ require_relative 'os'
 require 'ruby-progressbar'
 
 module ACME
+  # Some snazy utility methods for better Assignment Branch Condition
+  # Cyclomatic complexity Perceived.
+  #
   module Utils
     # Methods are also available as module-level methods as well as a mixin.
     extend self
@@ -54,7 +57,7 @@ module ACME
       elsif ENV['TERM'] && command_in_path?('tput')
         [`tput cols`.to_i, `tput lines`.to_i]
       elsif command_in_path?('stty')
-        `stty size`.scan(/\d+/).map {|s| s.to_i }
+        `stty size`.scan(/\d+/).map(&:to_i)
       else
         [0, 0]
       end
@@ -67,7 +70,12 @@ module ACME
     # @return [String]
     #
     def mark_line
-      Utils.terminal_dimensions[0].times { print '-'.yellow }
+      terminal_dimensions[0].times { print '-'.yellow }
+      puts
+    end
+
+    def double_mark_line
+      3.times { terminal_dimensions[0].times { print '~'.purple } }
       puts
     end
 
@@ -76,18 +84,22 @@ module ACME
     # @param [Integer] amount
     #
     def progress_bar(wait)
-      progressbar = ProgressBar.create(format: '%a %bᗧ%i %p%% %t',
-        progress_mark:' ', remainder_mark: '･', starting_at: 0, total: wait)
+      progressbar = ProgressBar.create(
+        format:         '%a %bᗧ%i %p%% %t',
+        progress_mark:  ' ',
+        remainder_mark: '･',
+        starting_at:     0,
+        total:           wait)
       wait.times do
         progressbar.increment
         sleep 1
       end
-      progressbar.finish
-      puts
     end
   end
 end
 
+# Slap a `#.contains?` class on String, like hiting the easy button.
+#
 class String
   # Search a text file for a matching string
   #

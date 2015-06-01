@@ -1,18 +1,18 @@
 {
-  "id":           "<%= o[:org] %>",
-  "client_name":  "<%= o[:user] %>",
-  "organization": "<%= o[:org] %>",
-  "chef_server":  "https://<%= o[:chef_server] %>",
+  "id":           "<%= org[:name] %>",
+  "client_name":  "<%= user[:name] %>",
+  "organization": "<%= org[:name] %>",
+  "chef_server":  "https://<%= chef_server %>",
 
   "WARNING!":     "|**| THIS FILE IS AUTO GENERATED, EDITING THIS FILE |**|",
   "ASHTUNG!":     "|**| WILL RESULT IN CATASTROPHIC SYSTEM FAILURE!    |**| ",
 
   "chef_repos": [
     {
-      "name":    "<%= o[:org] %>",
-      "url":     "<%= o[:git_url] %>",
-      "branch":  "<%= o[:branch] %>",
-      "polling": "<%= o[:polling] %>"
+      "name":    "<%= org[:name] %>",
+      "url":     "<%= git[:url] %>",
+      "branch":  "<%= git[:branch] %>",
+      "polling": "<%= git[:polling] %>"
     }
   ],
   "validation_key": <%= @validation_key.to_json %>,
