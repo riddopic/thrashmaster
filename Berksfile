@@ -19,6 +19,8 @@
 
 source 'https://supermarket.getchef.com'
 
+# A listing all the community cookbooks used by this Chef-Org.
+#
 group :community do
   cookbook '7-zip'
   # cookbook 'apache-hardening'
@@ -87,5 +89,7 @@ group :community do
   cookbook 'yum-fedora'
 end
 
+# A list of all cookbooks not in the Supermarket used by this Chef-Org.
+#
 cookbook 'garcon', github: 'riddopic/garcon', branch: 'develop'
 cookbook 'baseos', github: 'riddopic/baseos', branch: 'master'
