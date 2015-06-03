@@ -8,6 +8,11 @@ default_attributes(
     version: '12.3.0'
   },
   chef_client: {
+    config: {
+      http_proxy:  'http://10.0.0.6:8123',
+      https_proxy: 'http://10.0.0.6:8123',
+      no_proxy:    'localhost,127.0.0.1,192.168.0.0,10.0,172.17.0.0,dev'
+    },
     init:        'none',
     splay:        300,
     logrotate: {

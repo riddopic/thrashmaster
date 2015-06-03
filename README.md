@@ -29,11 +29,11 @@ If you haven't yet built the Docker containers you will need to do step 1 first,
 if you already have the containers build skip ahead to step 3.
 
 1. Clone the docker-containers git repo and `bundle install` required gems:
-    
+
 		$ git clone https://github.com/riddopic/docker-containers
 	    $ cd docker-containers
 	    $ bundle install
-	    
+
 2. Make all target containers:
 
 	   	$ make all
@@ -305,7 +305,7 @@ version 1.6.2 of boot2docker:
       --vmwarefusion-memory-size 4096 \
       --virtualbox-disk-size 40000 \
       --vmwarefusion-boot2docker-url https://github.com/boot2docker/boot2docker/releases/download/v1.6.2/boot2docker.iso \
-      dev -D
+      dev
 
     INFO[0000] Downloading boot2docker.iso from https://github.com/boot2docker/boot2docker/releases/download/v1.6.2/boot2docker.iso...
     INFO[0014] Creating SSH key...
@@ -337,19 +337,11 @@ To enable for just the current shell session, in sh, bash, and zsh:
 
     $ eval "$(docker-machine env dev)"
 
-In fish:
-
-    $ eval (chef shell-init fish)
-
 To permanently enable (**recommended**):
 
 In sh, bash, and zsh:
 
-    $ echo 'eval "$(chef shell-init SHELL_NAME)"' >> ~/.YOUR_SHELL_RC_FILE
-
-In fish:
-
-    $ echo 'eval (chef shell-init SHELL_NAME)' >> ~/.config/fish/config.fish
+    $ echo 'eval "$(docker-machine env dev)"' >> ~/.YOUR_SHELL_RC_FILE
 
 Now check that your dockers are in order, first make sure your shell environment
 settings are correctly setup by running:
