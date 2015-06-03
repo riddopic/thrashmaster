@@ -47,13 +47,13 @@ module ACME
     #   A list of environment variables in the form of VAR=value.
     #   @return [String]
     attr_accessor :env
-    # @!attribute [rw] :port
+    # @!attribute [rw] :ports
     #   A map of exposed container ports and the host port they should map to.
     #   It should be specified in the form { <port>/<protocol>: [{ "HostPort":
     #   "<port>" }] } Take note that port is specified as a string and not an
     #   integer value.
     #   @return [Hash]
-    attr_accessor :port
+    attr_accessor :ports
     # @!attribute [rw] :volumes
     #   An object mapping mountpoint paths (strings) inside the container to
     #   empty objects.

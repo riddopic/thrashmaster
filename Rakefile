@@ -110,6 +110,7 @@ module ACME
   container   'slave' do
     fqdn      'slave.acme.dev'
     image     'acme/docker'
+    env      ['PORT=4444']
     privileged true
     roles    ['role[base]', 'role[chef_client]', 'role[jenkins_slave]']
   end
