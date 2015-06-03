@@ -23,7 +23,7 @@ DEPENDENCIES
   dpkg_autostart
   garcon
     git: git://github.com/riddopic/garcon.git
-    revision: 8b483a0a116d37774f6938cc027f91ad99d4a43f
+    revision: e5660877a1ffd78aed8547e37af3a8206f9c7547
     branch: develop
   git
   golang

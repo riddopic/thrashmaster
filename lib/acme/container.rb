@@ -181,6 +181,10 @@ module ACME
       self
     end
 
+    # Helper to get platform specific options.
+    #
+    # @return [Array]
+    #
     def platform_opts
       case platform
       when 'alpine'
@@ -218,7 +222,7 @@ module ACME
     #   The output (result) of the chef-client run.
     #
     def chef_client
-      return unless @roles.nil? || @roles.empty? || platform == 'alpine'
+      return if @roles.nil? || @roles.empty? || platform == 'alpine'
       cmd = ['chef-client']
       container.exec(cmd) { |_, chunk| puts "#{fqdn.purple}: #{chunk}" }
     end
@@ -342,23 +346,23 @@ module ACME
     private
 
     def alpine
-      [ 'apk add --update openssh sudo bash', 'ssh-keygen -A'
+      ['apk add --update openssh sudo bash', 'ssh-keygen -A'
       ].each { |cmd| container.exec(['sh', '-c', cmd], detach: true) }
       ['/usr/sbin/sshd -D -o UseDNS=no']
     end
 
     def rhel
-      [ 'yum clean all',
-        'yum -y install sudo openssh-server openssh-clients',
-        'ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""',
-        'ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""'
+      ['yum clean all',
+       'yum -y install sudo openssh-server openssh-clients',
+       'ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""',
+       'ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""'
       ].each { |cmd| container.exec(['sh', '-c', cmd], detach: true) }
       ['/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no']
     end
 
     def debian
-      [ 'apt-get-min update',
-        'apt-get-install-min sudo openssh-server curl lsb-release'
+      ['apt-get-min update',
+       'apt-get-install-min sudo openssh-server curl lsb-release'
       ].each { |cmd| container.exec(['sh', '-c', cmd], detach: true) }
       ['/usr/sbin/sshd -D -o UseDNS=no -o UsePAM=no']
     end

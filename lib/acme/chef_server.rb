@@ -51,7 +51,7 @@ module ACME
       #
       def user_create(user = {})
         cmd = ['chef-server-ctl', 'user-create'] << user.values
-        container.exec(cmd.flatten).flatten[0]
+        container.exec(cmd.flatten)[0][0]
       end
 
       # Retrieve a list of users on the Chef server.
@@ -85,7 +85,7 @@ module ACME
       #
       def org_create(org = {})
         cmd = ['chef-server-ctl', 'org-create'] << org.values.insert(2, '-a')
-        container.exec(cmd.flatten).flatten[0]
+        container.exec(cmd.flatten)[0]
       end
 
       # List all of the organizations currently present on the Chef server.
@@ -97,7 +97,7 @@ module ACME
         container.exec(cmd).flatten[0].split
       end
 
-      def render_data_bag(name)
+      def render_data_bag(name, client_key, validation_key)
         cwd      = File.expand_path(File.dirname(__FILE__))
         data_bag = File.join(BASEDIR, 'lib', 'templates', 'data_bag.json.erb')
         template = ERB.new(File.read(data_bag))

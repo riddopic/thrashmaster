@@ -37,5 +37,6 @@ default_attributes(
 run_list %w[
   recipe[sudo::default]
   recipe[baseos::default]
+  recipe[build-essential]
   recipe[pipeline::master]
 ]

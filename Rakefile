@@ -62,38 +62,38 @@ end
 module ACME
   container 'consul' do
     fqdn    'consul.acme.dev'
-    image   'riddopic/consul'
+    image   'acme/consul'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container 'seagull' do
-    fqdn    'seagull.acme.dev'
-    image   'riddopic/seagull'
+  container  'seagull' do
+    fqdn     'seagull.acme.dev'
+    image    'acme/seagull'
     volumes ['/var/run/docker.sock' => {}]
     binds   ['/var/run/docker.sock:/var/run/docker.sock']
   end
 
-  container 'kibana' do
-    fqdn    'kibana.acme.dev'
-    image   'riddopic/kibana'
+  container  'kibana' do
+    fqdn     'kibana.acme.dev'
+    image    'acme/kibana'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container 'logstash' do
-    fqdn    'logstash.acme.dev'
-    image   'riddopic/logstash'
+  container  'logstash' do
+    fqdn     'logstash.acme.dev'
+    image    'acme/ubuntu-14.04'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container 'elasticsearch' do
-    fqdn    'elasticsearch.acme.dev'
-    image   'riddopic/elasticsearch'
+  container  'elasticsearch' do
+    fqdn     'elasticsearch.acme.dev'
+    image    'acme/ubuntu-14.04'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container 'chef' do
-    fqdn    'chef.acme.dev'
-    image   'riddopic/chef-server'
+  container  'chef' do
+    fqdn     'chef.acme.dev'
+    image    'acme/chef-server'
     env     [
       "PUBLIC_URL=https://#{chef_server}",
       "OC_ID_ADMINISTRATORS=#{user[:name]}"
@@ -101,17 +101,17 @@ module ACME
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container 'jenkins' do
-    fqdn    'jenkins.acme.dev'
-    image   'riddopic/centos-6'
+  container  'jenkins' do
+    fqdn     'jenkins.acme.dev'
+    image    'acme/centos-6'
     roles   ['role[base]', 'role[chef_client]', 'role[jenkins_master]']
   end
 
-  container 'slave' do
+  container   'slave' do
     fqdn      'slave.acme.dev'
-    image     'riddopic/docker'
+    image     'acme/docker'
     privileged true
-    roles     ['role[base]', 'role[chef_client]', 'role[jenkins_slave]']
+    roles    ['role[base]', 'role[chef_client]', 'role[jenkins_slave]']
   end
 end
 
@@ -170,7 +170,7 @@ task :start do
   if ACME.chef.org_list.include? org[:name]
     "[#{ret_ok}]"
   else
-    @validation_key = ACME.chef.org_create(org)
+    @validation_key = ACME.chef.org_create(org)[0]
     open(VALIDATION, File::CREAT|File::TRUNC|File::RDWR, 0644) { |file|
       file << @validation_key ? "[#{ret_ok}]" : "[#{ret_fail}]"
     }
@@ -178,7 +178,7 @@ task :start do
 
   printf "%-70s %-s\n",
          "Creating data bags for '#{org[:name]}' org:", "[#{ret_ok}]"
-  ACME.chef.render_data_bag(org[:name])
+  ACME.chef.render_data_bag(org[:name], @client_key, @validation_key)
 
   printf "%-70s %-s\n",
          "Creating knife config for '#{org[:name]}' org:", "[#{ret_ok}]"
@@ -187,15 +187,24 @@ task :start do
   printf "%-70s %-s\n", "Fetching server SSL certificates:", "[#{ret_warn}]"
   system 'knife ssl fetch'
 
+  puts "\nBerkshelf install && upload:".blue
   system 'berks install -c .berkshelf/config.json'
   system 'berks upload  -c .berkshelf/config.json'
+
+  puts "\nUploading environments:".blue
   system 'knife environment from file environments/*'
+
+  puts "\nUploading roles:".blue
   system 'knife role from file roles/*'
+
+  puts "\nUploading and uploading data bags:".blue
   system 'knife data bag create chef_org'
   system 'knife data bag create users'
   system 'knife data bag from file chef_org data_bag/chef_org/*'
   system 'knife data bag from file users data_bag/users/*'
   system 'knife cookbook upload pipeline --freeze --force'
+
+  puts "\nChef Server bootstrapping complete!\n".green
 
   ACME.containers.each do |c|
     next if c.platform == 'alpine'
