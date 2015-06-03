@@ -30,6 +30,10 @@ default_attributes(
   jenkins: {
     master: {
       version: '1.596-1.1'
+    },
+    proxy: {
+      url:  '10.0.0.6',
+      port:  8123
     }
   }
 )
