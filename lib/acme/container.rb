@@ -223,8 +223,8 @@ module ACME
     #
     def chef_client
       return if @roles.nil? || @roles.empty? || platform == 'alpine'
-      cmd = ['chef-client']
-      container.exec(cmd) { |_, chunk| puts "#{fqdn.purple}: #{chunk}" }
+      cmd = ['sh', '-c', 'chef-client']
+      container.exec(cmd) { |stream, chunk| puts "#{stream}: #{chunk}" }
     end
 
     # Stop the container, will raise a `Docker::Error::NotFoundError` if the

@@ -3,8 +3,6 @@
 name        'jenkins_master'
 description 'Sir. Master Jenkins and his Pipeline role.'
 
-override_attributes jenkins: { proxy: { url: '10.0.0.6', port: 8123 } }
-
 default_attributes(
   java: {
     install_flavor: 'oracle',
