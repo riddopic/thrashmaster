@@ -10,7 +10,7 @@ fi
 
 if test ! $(which brew); then
   echo "Installing homebrew..."
-  ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 else
   brew update
 fi
@@ -44,6 +44,11 @@ elif [[ $SHELL = '/bin/zsh' || $SHELL = '/usr/local/bin/zsh' ]]; then
 fi
 
 bundle install
+
+docker-machine create -d vmwarefusion \
+  --vmwarefusion-memory-size 4096 \
+  --vmwarefusion-disk-size 40000 \
+  --vmwarefusion-boot2docker-url https://github.com/boot2docker/boot2docker/releases/download/v1.6.2/boot2docker.iso dev
 
 # Create a route entry to the container network:
 sudo route -n add 172.17.0.0/16 $(docker-machine ip)
