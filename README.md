@@ -48,6 +48,12 @@ Let's go ahead and clone the git repo then cd into the directory:
 	$ git clone https://github.com/riddopic/thrashmaster
 	$ cd thrashmaster
 
+The next steps contain a large number of moving parts, the Pipeline will bootstrap itself, first running a shell script (we may not have Ruby installed just yet), then when it detects that the system has the required prerequisites will launch Ruby task which will build and start the containers, bootstrap the Chef server and finally bootstrap the Jenkins master/slave.
+
+**Please note:** The Chef client must run twice on the master and twice on the slave (running first on master, then slave, then master then again slave). The Jenkins pipeline dashboard will eventually appear as:
+
+![jenkins-dashboard.png](docs/jenkins-dashboard.png)
+
 
 Next run the `setup.sh`
 
@@ -122,7 +128,7 @@ the terminal, the quickest way to open one is to use Spotlight; press Command
 
   - Installing Xcode is very simple, on Mac OS X Yosemite will alert you when you enter a command in the terminal that requires Xcode Command Line Tools, for example, you can enter `gcc`, `git`, or `make` and you will see an alert box:
 
-      ![installing-mavericks-popup.png](installing-mavericks-popup.png)
+      ![installing-mavericks-popup.png](docs/installing-mavericks-popup.png)
 
   - Alternatively, you can use a command to install Xcode Command Line Tools. It will produce a similar alert box. Note the double hyphen:
 
@@ -130,7 +136,7 @@ the terminal, the quickest way to open one is to use Spotlight; press Command
 
   - Click “Install” to download and install Xcode Command Line Tools. The instructions in the alert box are confusing. You don’t need to “Get Xcode” from the App Store. Just click “Install” for the Xcode Command Line Tools.
 
-    ![image](installing-mavericks-download.png)
+      ![installing-mavericks-download.png](docs/installing-mavericks-download.png)
 
   - Verify that you’ve successfully installed Xcode Command Line Tools:
 
@@ -179,7 +185,7 @@ the terminal, the quickest way to open one is to use Spotlight; press Command
 
     You should get a message like this:
 
-        Hi aeinstein! You've successfully authenticated, but GitHub does not provide shell access.
+        Hi einstein! You've successfully authenticated, but GitHub does not provide shell access.
 
     Now you’ll be ready to use Git when you need it.
 
@@ -770,7 +776,3 @@ limitations under the License.
 [http://consul.acme.dev:8500]: http://consul.acme.dev:8500
 [http://kibana.acme.com]: http://kibana.acme.com
 [http://jenkins.acme.com]: http://jenkins.acme.com
-
-[-][-][-][-]![image](https://m1.behance.net/rendition/pm/4433039/disp/278fd9c9ade5d979c2da14298b4eb774.jpg)[-][-][-][-]
-
-![image](http://www.awgraphics.net/mbvm/wp-content/uploads/2012/08/Acme-logo.jpg)
