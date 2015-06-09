@@ -1,53 +1,371 @@
-
 # ACME Auto Parts & Plumbing Corporation, Inc.
 
-Welcome to ACME Auto Parts & Plumbing, a Wholly-Owned Subsidiary of ACME Bait &
-Tackle Corporation where quality is our #1 dream! This is the ACME operations
-repository of development cooking and pipe laying, continuously.
+Welcome to ACME Auto Parts & Plumbing, a Wholly-Owned Subsidiary of ACME Bait & Tackle Corporation where quality is our #1 dream! This is the fictional repository for ACME Corp, Inc. DevOps Engineering team with a hypothetical software stack automated with Chef and pipelined with Jenkins running on Linux containers, or PipelineStack-in-a-Box.
+
+This artistic rendering of a conceptual Chef development Workflow and accompanying environment with a Chef server, [ELKstack](elksack) ([Elasticsearch](elasticsearch), [Logstash](logstash), and [Kibana](kinana)), [Consul](consul) and [DockerUI](dockerui) running as Docker containers using [Google Kubernetes](kubernetes). While there is no single, prescribed right way, the right workflow is the one that works best for a specific team or a desired list of trendy buzzwords. What follows is the story of DevOps Team ACME and a solution they found suitable to their needs.
 
 ## Overview
 
-This is a artistic rendering of a proof-of-concept Jenkins pipeline complete
-with a Chef Server, [ELKstack](elksack) ([Elasticsearch](elasticsearch),
-[Logstash](logstash), and [Kibana](kinana)), [Consul](consul) and [Seagull]
-(seagull) running as Docker containers using Google Kubernetes.
+As you commit Chef artifacts to git (i.e. cookbooks, data bags, environments and roles) the PipelineStack-in-a-Box will test and load them into its Chef server automatically. This will configure a Jenkins master and any number of Jenkins workers. By default, this uses SSH slaves (master initiated) as opposed to JNLP slaves (slave initiated) and relies on a git repository of your Chef items of the following structure:
 
-The docker containers used for this pipeline are somewhat unorthodox by design,
-because docker is so light-weight it provides and excellent platform for running
-a large number of simultaneous machines. As such they do not follow the normal
-Docker practice of lightweight containers running a single process. Instead
-these are FatBoy™ containers complete with a process supervisor, SSH, [Consul]
-(consul), cron, log rotation and NTP.
+ - **Berksfile:**
+   - Contains all the cookbooks in your project.
+   - Used to generate cookbook jobs for cookbooks that need testing.
+   - Used to upload community cookbooks that don't need testing.
+   - Assumes there is a 'community' or external group of cookbooks you want to deliver to the Chef server.
+ - **environments/:** Directory of environment files in a format accepted by `knife upload`.
+ - **roles/:** Directory of role files in a format accepted by `knife upload`.
+ - **data_bags/:** Directory of data bag files in a format accepted by `knife upload`.
 
-## Quick Start Guide
+### Jobs
 
-Also know as 'runs with scissors' Assuming your machine meets the basic
-requirements, has docker-machine installed running boot2docker version >= 1.6.2
-and ChefDK;
+Two types of jobs exist; one to upload and test the Berksfile, environments, roles and data bags, the second one for uploading and testing a cookbook in our project, each configured to for watch for updates from their respective repositories and upload and run the jobs when changes are committed to git.
+
+When the pipeline is up and had a couple minutes to settle down their will be a minimum of two jobs configured in the Jenkins dashboard, one for uploading all the roles, environments and data bags as well as cookbooks that bypass testing, and one or more to test our projects cookbooks.
+
+ - **Chef Repo Job:**
+   - Uploads roles, environments, data bags and community cookbooks from the git repo to the Chef server.
+ - **Cookbook Jobs:**
+   - Lint and test the respective cookbook;
+	 - Runs knife test and Foodcritic;
+	 - Checks for documented code using YARD.
+	 - Runs unit tests using ChefSpec and RSpec.
+	 - Runs integration tests with ServerSPEC.
+   - Upload respective cookbook from git to the Chef server.
+
+The docker containers used for this pipeline are somewhat unorthodox by design, because docker is so light-weight it provides and excellent platform for running a large number of simultaneous machines. As such they do not follow the considered normal good practice only running a single process per containers. Instead these are FatBoy™ containers, or containers that exists to run a couple of processes for a single isolated transient moment in time, complete with a process supervisor, SSH, [Consul](consul), cron, log rotation and NTP. Now these are perfect to test Chef cookbooks on!
+
+## Usage
+
+The first time you run PipelineStack-in-a-Box you may be required to enter in your password so that prerequisite software and system configuration can take place. It may also take a some time to launch the stack as several containers, Chef servers, Jenkins servers, etc. are all built and provisioned. In order to reduce the time a web caching proxy is used so that subsequent invocations of the pipeline will be much faster.
+
+### Clone and run the ACME Pipeline Repository
+
+The pipeline is composed of many separate git repos but only one is required to bootstrap the cluster. This is the primary top-level Chef repository for the ACME Bait & Tackle Corporation and all its subsidiaries containing all the Chef roles, Chef Environments, data bags and a Berksfile listing all the cookbooks in use by the ACME Global Organization.
+
+Let's go ahead and clone the git repo then cd into the directory:
+
+	$ git clone https://github.com/riddopic/thrashmaster
+	$ cd thrashmaster
+
+
+Next run the `setup.sh`
+
+    stdout: [2015-06-09T14:09:26+00:00] INFO: Chef Run complete in 0.178823911 seconds
+    stdout: [2015-06-09T14:09:26+00:00] INFO: Running report handlers
+    stdout: [2015-06-09T14:09:26+00:00] INFO: Report handlers complete
+    0 minutes ago, jenkins, centos 6.6.
+    0 minutes ago, slave, ubuntu 14.04.
+	
+The next stop is to use Bundler to setup the Ruby environment:
+
+	$ bundle install
+	
+Now we are going to use Bundler to invoke Brew and Cask to install any additional OS X applications:
+
+	$ brew bundle Brewfile
+
+You should now all the prerequisite software installed:
+
+
+
+
+## Requirements
+
+Before trying to build and use the containers make sure you have a supported
+system. You will need docker, docker-machine, boot2docker, VirtualBox and/or
+VMware Fusion and a handful of other tools. Play close attention to the specific
+version numbers, generally speaking a newer version should be OK, an older
+version must be upgraded. It is important to have matching compatible versions
+of docker, docker-machine and boot2docker. At the time of this writing the
+versions required are:
+
+  - docker cli version 1.5.0:
+
+        $ docker -v
+        Docker version 1.5.0, build a8a31ef
+
+  - docker-machine version 0.2.0
+
+        $ docker-machine -v
+        docker-machine version 0.2.0 (8b9eaf2)
+
+  - boot2docker version 1.6.2
+
+        $ boot2docker -v
+        Boot2Docker-cli version: v1.6.2
+        Git commit: cb2c3bc
+
+Let's get started then, we are going to be doing the majority of our work inside
+the terminal, the quickest way to open one is to use Spotlight; press Command
+(⌘)-Space bar and type in "terminal" and slap that Enter key like you mean it!
+
+### Xcode
+
+1. First let's check if Xcode Already Installed, you don’t need the full Xcode package to get the Xcode Command Line Tools. However, you may have previously installed the full Xcode package.
+
+  - To check if the full Xcode package is already installed:
+
+		$ xcode-select -p
+
+    If you see:
+
+		/Applications/Xcode.app/Contents/Developer
+
+      The full Xcode package is already installed. You will need to update Xcode to the newest version (Xcode 6.3.2 or newer). Go to the App Store application and check “Updates.” After updating Xcode, **be sure to launch the Xcode application and accept the Apple license terms.**
+
+  - **If you see a file location that contains spaces in the path:**
+
+        /Applications/Apple Dev Tools/Xcode.app/Contents/Developer
+
+      You must delete Xcode. ChefDK and most command line tools will not work with spaces in the path. You can either install only the Xcode Command Line Tools (instructions below) or reinstalled the full Xcode package.
+
+  - Installing Xcode is very simple, on Mac OS X Yosemite will alert you when you enter a command in the terminal that requires Xcode Command Line Tools, for example, you can enter `gcc`, `git`, or `make` and you will see an alert box:
+
+      ![installing-mavericks-popup.png](installing-mavericks-popup.png)
+
+  - Alternatively, you can use a command to install Xcode Command Line Tools. It will produce a similar alert box. Note the double hyphen:
+
+		$ xcode-select --install
+
+  - Click “Install” to download and install Xcode Command Line Tools. The instructions in the alert box are confusing. You don’t need to “Get Xcode” from the App Store. Just click “Install” for the Xcode Command Line Tools.
+
+    ![image](installing-mavericks-download.png)
+
+  - Verify that you’ve successfully installed Xcode Command Line Tools:
+
+		$ xcode-select -p
+        /Library/Developer/CommandLineTools
+
+      Just to be certain, verify that gcc is installed:
+
+        $ gcc --version
+		Configured with: --prefix=/Library/Developer/CommandLineTools/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
+		Apple LLVM version 6.1.0 (clang-602.0.53) (based on LLVM 3.6.0svn)
+		Target: x86_64-apple-darwin14.3.0
+		Thread model: posix
+
+2. Git is automatically installed as part of the Xcode Command Line Tools. Or, if you updated from a previous version of Mac OS X, you may have installed Git previously.
+
+  - Check that Git is installed:
+
+        $ git version
+        git version 2.3.2 (Apple Git-55)
+
+  - Configure Git if you haven’t used it before. First, list the current settings with the git config -l --global command. Then set user.name and user.email if necessary:
+
+        $ git config -l --global
+        fatal: unable to read config file '/Users/.../.gitconfig': No such file or directory
+
+        $ git config --global user.name "Albert Einstein"
+        $ git config --global user.email einstein@gmail.com
+        $ git config --global color.ui true
+        $ git config -l --global
+        user.name=Albert Einstein
+		user.email=einstein@gmail.com
+		color.ui=true
+
+  - If you don’t have an SSH key generated yet to use with Git you can create one:
+
+        $ ssh-keygen -t rsa -C "einstein@gmail.com"
+
+  - The next step is to take the newly generated SSH key and add it to your Github and/or Stash account. You want to copy and paste the output of the following command and paste it here for Github, Stash will have a similar page to enter your key but I will leave it up to you to find that link.
+
+        $ cat ~/.ssh/id_rsa.pub
+
+    Once you've done this, you can check and see if it worked:
+
+        $ ssh -T git@github.com
+
+    You should get a message like this:
+
+        Hi aeinstein! You've successfully authenticated, but GitHub does not provide shell access.
+
+    Now you’ll be ready to use Git when you need it.
+
+## Automatic System Updates
+
+In order to better support the running of the ACME Pipeline in-a-docker box several changes need to be made to your base system. These are mostly handled automatically for you when you run the build, what follows is a list of those changes and the reasoning behind them.
+
+### SSH client configuration
+
+Each time a container is created it is assigned new internal IP address. Over time these IP addresses will be reassigned to another containers. When that occurs SSH will alert you with a message similar to the one shown here. This also can occur on the same node if the host keys were removed as part of the lifecycle of the system. This is to guard and alert you to a change in the machine and is the best option from security point of view as it protect your system against any trojan horse attacks.
+
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+	Someone could be eavesdropping on you right now (man-in-the-middle attack)!
+	It is also possible that the RSA host key has just been changed.
+	The fingerprint for the RSA key sent by the remote host is
+	a7:a8:f2:97:94:33:58:b7:9d:bc:e0:a6:6b:f7:0a:29.
+	Please contact your system administrator.
+	Add correct host key in /home/user/.ssh/known_hosts to get rid of this message.
+	Offending key in /home/user/.ssh/known_hosts:4
+	RSA host key for acme.dev has changed and you have requested strict checking.
+	Host key verification failed.
+
+However the pipeline-in-a-docker box is only a local environment using a private network with little outside risk of trojans. Given this lower risk we configure the base host machine SSH _client_ to disable host key verification, and not to use the known_hosts file for *.acame.dev machines. (**Please note:** this does not apply to Windows/Putty).
+
+	$ sudo tee ~/.ssh/config >/dev/null <<EOF
+        Host *.acme.dev
+		  User kitchen
+	      StrictHostKeyChecking no
+          UserKnownHostsFile /dev/null
+    EOF
+	
+As these are ephemeral pipeline containers we do not create user accounts other than what is required for testing. As such we use the kitchen user if we need to interact with the container directly. The line `User kitchen` instructs the ssh client to connect as the kitchen user anytime a SSH connection is made to a `*.acme.dev` machine.
+	
+The equivalent could also be achieved using command line arguments as shown below:
+	
+	$ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null kitchen@box.acme.dev
+
+# ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___
+# ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___
+# ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___
+# ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___  ___oxoXOXoxo___
+# WTF CHUCK, NO GOT DOCKER YET BRODUDE?
+
+Corrections:
+
+	$ git clone https://github.com/riddopic/thrashmaster
+	$ cd thrashmaster
+	$ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+	
+
+
+### Shell Configuration
+
+In order to interact with a docker-machine some environment variables need to be set in your shell. These variables can be obtained using the `docker-machine` command:
+
+    $ docker-machine env dev
+    export DOCKER_TLS_VERIFY=1
+    export DOCKER_CERT_PATH="/Users/sharding/.docker/machine/machines/dev"
+    export DOCKER_HOST=tcp://192.168.3.133:2376
+
+Once the docker-machine is up we are going to modify the shell environment to point to this docker-machine instance;
+
+ - To enable for just the current shell session, in sh, bash, and zsh:
+
+       $ eval $(docker-machine env dev)
+
+ - To permanently enable in sh, bash, and zsh (this will be done automatically for you but you will need to restart your shell):
+
+       $ echo 'eval "$(docker-machine env dev)"' >> ~/.YOUR_SHELL_RC_FILE
+
+ - Test to ensure everything is in order, running `docker ps` should produce similar output:
+
+       $ docker ps
+       CONTAINER ID        IMAGE            COMMAND            CREATED           STATUS                PORTS         NAMES
+
+### Network Configuration
+
+Next we are going to configure our network so that we can directly connect to the docker containers:
+
+ - Create a route entry to the container network:
+
+      	$ sudo route -n add 172.17.0.0/16 $(docker-machine ip)
+
+ - Next we create an alias on our loopback interface. This will allow us to access our machine form the docker container network without having to worry about our IP primary address changing.
+
+       $ sudo ifconfig lo0 alias 10.254.254.254
+
+### Clone and run the ACME Pipeline Repository
+
+The ACME Box in a Straw technology preview is composed of many separate git repos but only one is required to bootstrap the cluster. This is the primary top-level Chef repository for the ACME Bait & Tackle Corporation and all its subsidiaries containing all the Chef roles, Chef Environments, data bags and finally a Berksfile listing all the cookbooks in use by the ACME Global Organization.
+
+Let's go ahead and clone the git repo:
+
+	$ git clone https://github.com/riddopic/thrashmaster
+	$ cd thrashmaster
+	
+The next stop is to use Bundler to setup the Ruby environment:
+
+	$ bundle install
+	
+Now we are going to use Bundler to invoke Brew and Cask to install any additional OS X applications:
+
+	$ brew bundle Brewfile
+
+You should now all the prerequisite software installed:
+
+
+
+
+
+
 
 If you haven't yet built the Docker containers you will need to do step 1 first,
-if you already have the containers build skip ahead to step 3.
+if you already have the containers built skip ahead to step 3.
 
-1. Clone the docker-containers git repo and `bundle install` required gems:
+1. Start up a docker-machine with a generous helping of memory and disk (we are assigning 4GB or RAM and 40GB):
 
-		$ git clone https://github.com/riddopic/docker-containers
-	    $ cd docker-containers
-	    $ bundle install
+	* To start a VMware docker-machine:
 
-2. Make all target containers:
+          $ docker-machine create -d vmwarefusion \
+			 --vmwarefusion-memory-size 4096 \
+			 --vmwarefusion-disk-size 40960 \
+			 --vmwarefusion-boot2docker-url \
+			 https://github.com/boot2docker/boot2docker/releases/download/v1.6.2/boot2docker.iso \
+			 dev
 
-	   	$ make all
+	* If your using VirtualBox the command to run is:
+
+          $ docker-machine create -d virtualbox \
+             --virtualbox-memory 4096 \
+             --virtualbox-disk-size 40960 \
+             --virtualbox-boot2docker-url \
+             https://github.com/boot2docker/boot2docker/releases/download/v1.6.2/boot2docker.iso \
+             dev
+
+	* Once it's up let verify the host:
+
+		  $ docker-machine ls
+            NAME  ACTIVE  DRIVER        STATE    URL                       SWARM
+            dev   *       vmwarefusion  Running  tcp://192.168.3.133:2376
+
+2. Once the docker-machine is up we are going to modify the shell environment to point to this docker-machine instance;
+
+	* To enable for just the current shell session, in sh, bash, and zsh:
+
+          $ eval $(docker-machine env dev)
+
+	* To permanently enable (**recommended**) in sh, bash, and zsh:
+
+          $ echo 'eval "$(docker-machine env dev)"' >> ~/.YOUR_SHELL_RC_FILE
+
+	* Test to ensure everything is in order, running `docker ps` should produce similar output:
+
+          $ docker ps
+            CONTAINER ID        IMAGE            COMMAND            CREATED           STATUS                PORTS         NAMES
+
+3. Next we are going to configure our network so that we can directly connect to the docker containers:
+
+	* Create a route entry to the container network:
+
+           $ sudo route -n add 172.17.0.0/16 $(docker-machine ip)
+
+	* Next we create an alias on our loopback interface. This will allow us to access our machine form the docker container network without having to worry about our IP primary address changing.
+
+          $ sudo ifconfig lo0 alias 10.254.254.254
+
+
+# xoXOXox
+
+6. Make all target containers:
+
+	$ make all
 
 3. Clone the thrashmaster git repo and `bundle install` required gems:
 
-	    $ git clone https://github.com/riddopic/thrashmaster
-	    $ cd thrashmaster
-	    $ bundle install
+	$ git clone https://github.com/riddopic/thrashmaster
+	$ cd thrashmaster
+	$ bundle install
 
 4. Start the ACME Gas 'n' Go & Fine Wines, Inc. Pipeline in a Box where where
    quality is our #1 dream!:
 
-	    $ rake start
+	$ rake start
 
 This can take some time depending on the speed of your machine and your network
 connection. Once the task has completed it will have start several containers
@@ -55,6 +373,8 @@ and used Chef to bootstrap your Jenkins master and a slave node.
 
 Container | ACME Pipeline Stack Description
 ------------ | -------------
+`squid` | This container is configured as a caching web proxy using Squid.
+`iptables` | This container is responsible for routing HTTP traffic to the cache.
 `consul` | This container is responsible for DNS and service discover. You can connect to the consul UI via [http://consul.acme.dev:8500][]. By using the DNS server built into the Consul server you are able to to DNS resolution.
 `chef` | This is the Chef 12 Server for the Pipeline stack.
 `seagull` | Provides a friendly Web UI to monitor docker and get a visual representation of your running infrastructure.
@@ -64,235 +384,19 @@ Container | ACME Pipeline Stack Description
 `Jenkins` | Jenkins master: [http://jenkins.acme.com][]
 `Slave` | Slave Jenkins worker
 
-## Requirements
 
-Before trying to build and use the containers make sure you have a supported
-system. You will need docker and docker-machine installed, with a boot2docker
-ISO of 1.6.2 or higher, and Vagrant, and a virtualization platform such as
-VirtualBox or VMware Fusion. To get running you will need:
 
- - Install Xcode Command line tools
- - Configure Git
- - Install Homebrew and Homebrew Cask
- - GNU Tools
- - Vagrant
- - VirtualBox
- - VMware Fusion
- - Docker Machine
- - ChefDK (Chef Developers Kit) and miscellaneous tools.
+3. Homebrew (or brew) is a package manager for OS X, Cask is an extension to Homebrew that allows you to install graphical applications via the cli. Let's install them both:
 
-Thankfully this has become a relatively painless process so let’s get started!
-We will be doing most of our work in a terminal windows, the quickest way to
-open one is to use Spotlight, press Command-Spacebar key-combination and type in
-"terminal" and slap that Enter key like you mean it!
+   - To install Homebrew:
 
-### Is Xcode Already Installed?
+         $ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-You don’t need the full Xcode package to get the Xcode Command Line Tools.
-However, you may have previously installed the full Xcode package. To check if
-the full Xcode package is already installed:
+   - Next we use Homebrew to install Cask:
 
-    $ xcode-select -p
+         $ brew install caskroom/cask/brew-cask
 
-If you see:
 
-    /Applications/Xcode.app/Contents/Developer
-
-the full Xcode package is already installed.
-
-You will need to update Xcode to the newest version (Xcode 6 or newer). Go to
-the App Store application and check “Updates.” After updating Xcode, be sure to
-launch the Xcode application and accept the Apple license terms.
-
-If you see a file location that contains spaces in the path:
-
-    /Applications/Apple Dev Tools/Xcode.app/Contents/Developer
-
-you must delete Xcode. ChefDK and most command line tools will not work with
-spaces in the path. You can either install only the Xcode Command Line Tools
-(instructions below) or reinstalled the full Xcode package.
-
-### Install Xcode Command Line Tools
-
-Mac OS X Yosemite will alert you when you enter a command in the terminal that
-requires Xcode Command Line Tools. For example, you can enter gcc, git, or make.
-
-Try it. Enter:
-
-    $ gcc
-
-You’ll see an alert box:
-
-![installing-mavericks-popup.png](installing-mavericks-popup.png)
-
-Alternatively, you can use a command to install Xcode Command Line Tools. It
-will produce a similar alert box. Note the double hyphen:
-
-    $ xcode-select --install
-
-Click “Install” to download and install Xcode Command Line Tools.
-
-The instructions in the alert box are confusing. You don’t need to “Get Xcode”
-from the App Store. Just click “Install” for the Xcode Command Line Tools.
-
-![installing-mavericks-download.png](installing-mavericks-download.png)
-
-Verify that you’ve successfully installed Xcode Command Line Tools:
-
-    $ xcode-select -p
-    /Library/Developer/CommandLineTools
-
-Just to be certain, verify that gcc is installed:
-
-    $ gcc --version
-    Configured with: --prefix=/Library/Developer/CommandLineTools/usr --with-gxx-include-dir=/usr/include/c++/4.2.1
-    Apple LLVM version 6.0 (clang-600.0.54) (based on LLVM 3.5svn)
-    Target: x86_64-apple-darwin14.0.0
-    Thread model: posix
-
-### Configure Git
-
-Git is automatically installed as part of the Xcode Command Line Tools. Or, if
-you updated from a previous version of Mac OS X, you may have installed Git
-previously.
-
-Check that Git is installed:
-
-    $ git version
-    git version 1.9.3 (Apple Git-50)
-
-Configure Git if you haven’t used it before. First, list the current settings
-with the git config -l --global command. Then set user.name and user.email if
-necessary:
-
-    $ git config -l --global
-    fatal: unable to read config file '/Users/.../.gitconfig': No such file or directory
-
-    $ git config --global user.name "Your Real Name"
-    $ git config --global user.email me@example.com
-    $ git config --global color.ui true
-    $ git config -l --global
-    user.name=Your Real Name
-    user.email=me@example.com
-
-If you don’t have an SSH key generated yet to use with Git you can create one:
-
-    $ ssh-keygen -t rsa -C "me@example.com"
-
-The next step is to take the newly generated SSH key and add it to your Github
-and/or Stash account. You want to copy and paste the output of the following
-command and paste it here for Github, Stash will have a similar page to enter
-your key but I will leave it up to you to find that link.
-
-    $ cat ~/.ssh/id_rsa.pub
-
-Once you've done this, you can check and see if it worked:
-
-    $ ssh -T git@github.com
-
-You should get a message like this:
-
-    Hi riddopic! You've successfully authenticated, but GitHub does not provide shell access.
-
-Now you’ll be ready to use Git when you need it.
-
-### Install Homebrew
-
-Homebrew is a package manager for OS X. If you ever meet the guy who wrote
-Homebrew buy him a beer.
-
-    $ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-
-### Install Homebrew Cask
-
-Next we need to install Homebrew Cask, an add-on that allows you to install OSX
-applications from the command line:
-
-    $ brew install caskroom/cask/brew-cask
-
-### Install GNU Utilities
-
-Now let’s have some fun and start installing some software! First make sure you
-have the latest Homebrew:
-
-    $ brew update
-
-If you need to upgrade any already-installed formulae:
-
-    $ brew upgrade
-
-Next I like to install GNU core utilities (those that come with OS X are
-outdated), if you do don’t forget to add
-$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
-
-    $ brew install coreutils
-
-Install some other useful utilities like `sponge`
-
-    $ brew install moreutils
-
-Install GNU `find`, `locate`, `updatedb`, and `xargs`, `g`-prefixed
-
-    $ brew install findutils
-
-Install GNU `sed`, overwriting the built-in `sed`
-
-    $ brew install gnu-sed --default-names
-
-Install Figlet:
-
-    $ brew install figlet
-
-Now, let’s do some quick housekeeping:
-
-    $ brew cleanup
-
-### Install Vagrant
-
-GUI type applications are installed with Cask:
-
-    $ brew cask install vagrant
-
-### Install VirtualBox
-
-    $ brew cask install virtualbox
-
-#### Install VMware Fusion
-
-You will need a license to use this.
-
-    $ brew cask install vmware-fusion
-
-### Install Docker Machine
-
-    $ brew install docker docker-machine
-
-#### Also install figlet:
-
-    $ brew install figlet
-
-#### Install ChefDK
-
-    $ brew cask install chefdk
-
-I prefer to use iTerm instead of the built-in Terminal application:
-
-    $ brew cask install iterm2
-
-Finally, you are going to need a good editor, vi, emacs, Atom, Textmate, are all
-super editors, pick one if you don’t already have one you like:
-
-GitHubs Atom editor:
-
-    $ brew cask install atom
-
-Sublime Text:
-
-    $ brew cask install sublime-text
-
-Textmate:
-
-    $ brew cask install textmate
 
 #### Starting a Docker Machine
 
@@ -303,7 +407,7 @@ version 1.6.2 of boot2docker:
 
     $ docker-machine create -d vmwarefusion \
       --vmwarefusion-memory-size 4096 \
-      --virtualbox-disk-size 40000 \
+      --vmwarefusion-disk-size 40000 \
       --vmwarefusion-boot2docker-url https://github.com/boot2docker/boot2docker/releases/download/v1.6.2/boot2docker.iso \
       dev
 
@@ -347,8 +451,8 @@ Now check that your dockers are in order, first make sure your shell environment
 settings are correctly setup by running:
 
     $ docker-machine ls
-  NAME  ACTIVE  DRIVER        STATE    URL                       SWARM
-  dev   *       vmwarefusion  Running  tcp://192.168.3.133:2376
+      NAME  ACTIVE  DRIVER        STATE    URL                       SWARM
+      dev   *       vmwarefusion  Running  tcp://192.168.3.133:2376
 
 Now let’s make sure you can connect to the machine via SSH:
 
@@ -473,7 +577,8 @@ To start the container `chef` with the hostname set to `chef.mudbox.dev`, using
 the riddopic/chef-server base container:
 
     $ docker run -d --name chef -h chef.mudbox.dev \
-    -e 'PUBLIC_URL=https://chef.mudbox.dev OC_ID_ADMINISTRATORS=jenkins' \
+      -e PUBLIC_URL=https://chef.mudbox.dev \
+      -e OC_ID_ADMINISTRATORS=jenkins \
       riddopic/chef-server
 
 #### Prerequisites and first start
@@ -489,10 +594,8 @@ on your docker hosts:
 
 To make the change permanent add the values to `/etc/sysctl.con`:
 
-    $ docker-machine ssh dev -- sudo sh -c 'kernel.shmmax=17179869184" \
-    >> sysctl.conf'
-    $ docker-machine ssh dev -- sudo sh \
-    -c 'kernel.shmall=4194304" >> sysctl.conf'
+    $ docker-machine ssh dev -- sudo sh -c 'kernel.shmmax=17179869184" >> sysctl.conf'
+    $ docker-machine ssh dev -- sudo sh -c 'kernel.shmall=4194304"     >> sysctl.conf'
 
 First start will automatically run `chef-server-ctl reconfigure`. Subsequent
 starts will not run `reconfigure`, unless file `/var/opt/opscode/bootstrapped`
@@ -597,7 +700,9 @@ Use `docker exec` to run commands on your Chef server:
 
 ## System configuration
 
-Alias the loopback interface, this allows for your docker machines to access your OS X machine and provides a wildcard DNS lookup by including `address=/dev/10.254.254.254` in our `dnsmasq.conf` file.
+Alias the loopback interface, this allows for your docker machines to access
+your OS X machine and provides a wildcard DNS lookup by including `address=/dev/
+10.254.254.254` in our `dnsmasq.conf` file.
 
     $ sudo ifconfig lo0 alias 10.254.254.254
 
@@ -605,20 +710,27 @@ Create a route to the docker network you can access machines directly:
 
     $ sudo route -n add 172.17.0.0/16 $(docker-machine ip)
 
-Configure SSH to be more tolerate of changing machines by disable strict host key checking and also connect as the kitchen user to the docker containers in the acme.dev domain by editing your `~/.ssh/config` file and ensure you have the following four lines:
+Configure SSH to be more tolerate of changing machines by disable strict host
+key checking and also connect as the kitchen user to the docker containers in
+the acme.dev domain by editing your `~/.ssh/config` file and ensure you have the
+following four lines:
 
-	Host *.acme.dev
+  Host *.acme.dev
       User kitchen
       StrictHostKeyChecking no
       UserKnownHostsFile /dev/null
 
 Create the /etc/resolver directory and create the `dev` zone file:
 
-	$ CONSUL_IP=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' consul)
+  $ CONSUL_IP=$(docker inspect -f '{{.NetworkSettings.IPAddress}}' consul)
     $ sudo mkdir /etc/resolver
     $ echo "nameserver $CONSUL_IP" >> /etc/resolver/dev
 
 
+
+```
+To summarize simply put it's awesome, rockstar, superstar, ninja, cool guru showing a deep convergence of next-gen, bleeding-edge, synergistic styles. If you ever meet the guy who wrote Homebrew buy him a beer, he's the guru superstar rock-ninja of oracles.
+```
 
 ## License and Authors
 
@@ -638,6 +750,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ```
+
+
+[ELKstack]:
+[Elasticsearch]:
+[Logstash]:
+[Kibana]:
+[Consul]:
+[DockerUI]:
+[Google Kubernetes]: http://www
 [Berkshelf]: http://berkshelf.com "Berkshelf"
 [Chef]: https://www.chef.io/chef/ "Chef"
 [Serf]: https://www.serfdom.io "Serf"
@@ -650,4 +771,6 @@ limitations under the License.
 [http://kibana.acme.com]: http://kibana.acme.com
 [http://jenkins.acme.com]: http://jenkins.acme.com
 
+[-][-][-][-]![image](https://m1.behance.net/rendition/pm/4433039/disp/278fd9c9ade5d979c2da14298b4eb774.jpg)[-][-][-][-]
 
+![image](http://www.awgraphics.net/mbvm/wp-content/uploads/2012/08/Acme-logo.jpg)

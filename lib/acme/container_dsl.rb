@@ -37,27 +37,31 @@ module ACME
     end
 
     def privileged(privileged = false)
-      @container.privileged ||= privileged
+      @container.privileged = privileged
+    end
+
+    def networkmode(networkmode)
+      @container.networkmode = networkmode
     end
 
     def roles(roles)
-      @container.roles ||= roles
+      @container.roles = roles
     end
 
     def env(env)
-      @container.env ||= env
+      @container.env = env
     end
 
     def ports(ports)
-      @container.ports ||= ports.join(' ')
+      @container.ports = ports.join(' ')
     end
 
     def volumes(volumes)
-      @container.volumes ||= volumes.join(' ')
+      @container.volumes = volumes.join(' ')
     end
 
     def binds(binds)
-      @container.binds ||= binds
+      @container.binds = binds
     end
   end
 end

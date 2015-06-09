@@ -23,11 +23,11 @@ require 'net/ssh'
 
 require_relative 'acme/utils'
 require_relative 'acme/proxy'
-require_relative 'acme/extensions'
 require_relative 'acme/container_dsl'
 require_relative 'acme/chef_server'
 require_relative 'acme/container'
 require_relative 'acme/prerequisites'
+require_relative 'acme/rakelib'
 
 # ACME Home Appliance & Sushi and Pet Supply, Inc.
 #
@@ -51,6 +51,18 @@ module ACME
 
   class << self
     attr_accessor :containers
+  end
+
+  def ret_ok
+    'OK'.green
+  end
+
+  def ret_warn
+    'Warning'.yellow
+  end
+
+  def ret_fail
+    'Failed'.red
   end
 
   # Register a new container, note that we do not check for duplicates.
@@ -115,7 +127,7 @@ module ACME
     super
     object.instance_eval do
       extend ACME::Utils
-      extend ACME::Extensions
+      extend ACME::Rakelib
     end
   end
   private_class_method :extended

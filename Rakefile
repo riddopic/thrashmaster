@@ -60,40 +60,61 @@ if ENV['USER'] == 'root'
 end
 
 module ACME
+  container 'squid' do
+    image       'riddopic/squid'
+    privileged   true
+    networkmode :host
+  end
+
+  container 'router' do
+    image       'riddopic/router'
+    privileged   true
+    networkmode :host
+  end
+
   container 'consul' do
     fqdn    'consul.acme.dev'
-    image   'acme/consul'
+    image   'riddopic/consul'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
-  container  'seagull' do
-    fqdn     'seagull.acme.dev'
-    image    'acme/seagull'
-    volumes ['/var/run/docker.sock' => {}]
-    binds   ['/var/run/docker.sock:/var/run/docker.sock']
-  end
+  # container   'dockerui' do
+  #   fqdn      'dockerui.acme.dev'
+  #   image     'riddopic/dockerui'
+  #   privileged true
+  #   ports    ['80/tcp']
+  #   volumes  ['/var/run/docker.sock' => {}]
+  #   binds    ['/var/run/docker.sock:/var/run/docker.sock']
+  # end
+
+  # container  'seagull' do
+  #   fqdn     'seagull.acme.dev'
+  #   image    'riddopic/seagull'
+  #   volumes ['/var/run/docker.sock' => {}]
+  #   binds   ['/var/run/docker.sock:/var/run/docker.sock']
+  # end
 
   container  'kibana' do
     fqdn     'kibana.acme.dev'
-    image    'acme/kibana'
+    image    'riddopic/kibana'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container  'logstash' do
     fqdn     'logstash.acme.dev'
-    image    'acme/ubuntu-14.04'
+    image    'riddopic/ubuntu-14.04'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container  'elasticsearch' do
     fqdn     'elasticsearch.acme.dev'
-    image    'acme/ubuntu-14.04'
+    image    'riddopic/ubuntu-14.04'
     roles   ['role[base]', 'role[chef_client]', 'role[hardening]']
   end
 
   container  'chef' do
     fqdn     'chef.acme.dev'
-    image    'acme/chef-server'
+    image    'riddopic/chef-server'
     env     [
       "PUBLIC_URL=https://#{chef_server}",
       "OC_ID_ADMINISTRATORS=#{user[:name]}"
@@ -103,14 +124,13 @@ module ACME
 
   container  'jenkins' do
     fqdn     'jenkins.acme.dev'
-    image    'acme/centos-6'
+    image    'riddopic/centos-6'
     roles   ['role[base]', 'role[chef_client]', 'role[jenkins_master]']
   end
 
   container   'slave' do
     fqdn      'slave.acme.dev'
-    image     'acme/docker'
-    env      ['PORT=4444']
+    image     'riddopic/docker'
     privileged true
     roles    ['role[base]', 'role[chef_client]', 'role[jenkins_slave]']
   end
@@ -128,108 +148,38 @@ task :start do
   puts "\nStarting Pipeline Stack".magenta
   mark_line
 
-  # Startup the Consul server first.
-  #
-  c = ACME.consul
-  c.created? ? c.started? ? c.run : c.start.run : c.create.start.run
-  printf "%-70s %-s\n",
-         "Starting container #{c.fqdn}:", "[#{c.ip.yellow}]"
-
-  ACME::Prerequisites.validate
+  startup_core
   docker_kernel
+  startup_elkstack
+  startup_chefstack
+  timer(amount) # TODO: this could have brains.
+  chef_bootstrap(user, org, git, chef_server)
 
-  ACME.containers.each do |c|
-    c.created? ? c.started? ? c.run : c.start.run : c.create.start.run
-    printf "%-70s %-s\n",
-           "Starting container #{c.fqdn}:", "[#{c.ip.yellow}]"
-  end
-
-  puts "\nWaiting for Chef server to auto configure:\n".red
-  progress_bar amount
-  puts
-
-  # Extend the Chef container object with additional methods.
-  ACME.chef.extend(ACME::Extensions::ChefServer)
-
-  # Checks for the existnace of the Jenkins user, if not found it will create
-  # the user and save the keys in the .chef dir.
-  #
-  printf "%-70s %-s\n", "Creating '#{user[:name]}' user on the Chef server:",
-  if ACME.chef.user_list.include? user[:name]
-    "[#{ret_ok}]"
-  else
-    @client_key = ACME.chef.user_create(user)
-    open(CLIENT_PEM, File::CREAT|File::TRUNC|File::RDWR, 0644) { |file|
-      file << @client_key ? "[#{ret_ok}]" : "[#{ret_fail}]"
-    }
-  end
-
-  # Checks for the existnace of the ACME Organization, if not found it will
-  # create the org and save the keys in the .chef dir.
-  #
-  printf "%-70s %-s\n", "Creating '#{org[:name]}' org on the Chef server:",
-  if ACME.chef.org_list.include? org[:name]
-    "[#{ret_ok}]"
-  else
-    @validation_key = ACME.chef.org_create(org)[0]
-    open(VALIDATION, File::CREAT|File::TRUNC|File::RDWR, 0644) { |file|
-      file << @validation_key ? "[#{ret_ok}]" : "[#{ret_fail}]"
-    }
-  end
-
-  printf "%-70s %-s\n",
-         "Creating data bags for '#{org[:name]}' org:", "[#{ret_ok}]"
-  ACME.chef.render_data_bag(org[:name], @client_key, @validation_key)
-
-  printf "%-70s %-s\n",
-         "Creating knife config for '#{org[:name]}' org:", "[#{ret_ok}]"
-  ACME.chef.render_knife
-
-  printf "%-70s %-s\n", "Fetching server SSL certificates:", "[#{ret_warn}]"
-  system 'knife ssl fetch'
-
-  puts "\nBerkshelf install && upload:".blue
-  system 'berks install -c .berkshelf/config.json'
-  system 'berks upload  -c .berkshelf/config.json'
-
-  puts "\nUploading environments:".blue
-  system 'knife environment from file environments/*'
-
-  puts "\nUploading roles:".blue
-  system 'knife role from file roles/*'
-
-  puts "\nUploading and uploading data bags:".blue
-  system 'knife data bag create chef_org'
-  system 'knife data bag create users'
-  system 'knife data bag from file chef_org data_bag/chef_org/*'
-  system 'knife data bag from file users data_bag/users/*'
-  system 'knife cookbook upload pipeline --freeze --force'
-
-  puts "\nChef Server bootstrapping complete!\n".green
-
-  ACME.containers.each do |c|
-    next if c.platform == 'alpine'
+  [ACME.jenkins, ACME.slave].each do |c|
     2.times { mark_line }
     system "figlet -f ogre #{c.name}"
     c.bootstrap
   end
 
-  [ACME.jenkins, ACME.slave].each do |c|
-    next if c.platform == 'alpine'
-    2.times { mark_line }
-    system "figlet -f ogre #{c.name}"
-    c.chef_client
+  2.times do
+    [ACME.jenkins, ACME.slave].each do |c|
+      2.times { mark_line }
+      system "figlet -f ogre #{c.name}"
+      c.chef_client
+    end
   end
 
   double_mark_line
   system 'knife status'
   2.times { mark_line }
-end # --------------------------------------------------------------------------
+end
 
 desc 'Do the Chef'
 task :chef do
   ACME.containers.each do |c|
     next if c.platform == 'alpine'
+    next if c.name == 'squid' || c.name == 'router' || c.platform == 'alpine'
+
     2.times { mark_line }
     system "figlet -f ogre #{c.name}"
     c.chef_client
@@ -242,9 +192,16 @@ task :restart => [:stop, :start]
 desc 'Stop and cleanup pipeline stack'
 task :stop do
   ACME.containers.each do |c|
+    next if c.name == 'squid' || c.name == 'router'
     printf "%-70s %-s\n",
-           "Stoping and cleaning up container #{c.fqdn}:", "[#{ret_ok}]"
-    c.created? ? c.started? ? c.stop.delete : c.delete : false
+      "Stoping and cleaning up container #{c.fqdn}:",
+      "[#{ret_ok}]"
+    begin
+      if c.created?
+        c.started? ? c.stop.delete : c.delete
+      end
+    rescue Docker::Error::ServerError
+    end
   end
   [VALIDATION, CLIENT_PEM, KNIFE_FILE, CERTS_DIR, ORG_DATABAG].each do |file|
     FileUtils.rm_rf file if File.exist? file

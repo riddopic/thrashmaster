@@ -33,7 +33,8 @@ module ACME
     def validate
       if OS.mac?
         check_docker
-        printf "%-70s %-10s\n", 'Checking for local resolver:', "[#{resolver?}]"
+        printf "%-70s %-10s\n", 'THIS NEEDS TO BE FIXED YOU IDIOT', "[#{farg!}]"
+        printf "%-70s %-10s\n", 'Checking for local resolver:', "[#{farg!}]"
         printf "%-70s %-10s\n", 'Checking for Chef DK:',        "[#{chefdk?}]"
       else
         put 'This OS has not been tested to work, good luck...'
@@ -50,6 +51,10 @@ module ACME
     end
 
     private
+
+    def farg!
+      'Fail!'.red
+    end
 
     def docker?
       if command_in_path?('docker') && command_in_path?('docker-machine')

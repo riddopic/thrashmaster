@@ -71,6 +71,11 @@ module ACME
     #   Give extended privileges to this container.
     #   @return [undefined]
     attr_accessor :privileged
+    # @!attribute [rw] :networkmode
+    #   Sets the networking mode for the container. Supported values are:
+    #   `bridge`, `host`, and `container:<name|id>`.
+    #   @return [undefined]
+    attr_accessor :networkmode
 
     # Constructor for new container instance.
     #
@@ -105,7 +110,9 @@ module ACME
     # @return [Hash]
     #
     def host_config
-      { 'Binds' => @binds, 'Privileged' => @privileged }
+      { 'Binds'       => @binds,
+        'Privileged'  => @privileged,
+        'NetworkMode' => @networkmode.to_s }
     end
 
     # Retrieve the domainname for the container.
@@ -120,14 +127,30 @@ module ACME
     #
     # @return [String]
     #
-    def env # TODO: Cleanup...
-      Proxy.running? ? [@env, Proxy.env, Proxy.no_proxy] : @env
-      # return unless @env.blank? || @env.nil?
-      # if @env.respond_to?(:each)
-      #   @env.map { |e| e.respond_to?(:call) ? e.call : e }.join(' ')
-      # elsif @env.respond_to?(:call)
-      #   @env.call
-      # end
+    def env
+      Proxy.running? ? ([@env] << [Proxy.env, Proxy.no_proxy]) : @env
+    end
+
+    def __options__
+      { 'name'         => @name,
+        'Env'          => env.join("\n"),
+        'Image'        => @image,
+        'Volumes'      => @volumes,
+        'ExposedPorts' => exposed_ports,
+        'HostConfig'   => host_config }
+    end
+
+    # If the container is not
+    def __name__
+      { 'Hostname' => @name, 'Domainname' => domain }
+    end
+
+    # The list of options to pass when creating the container.
+    #
+    # @return [Hash]
+    #
+    def options
+      @networkmode.blank? ? __options__.merge(__name__) : __options__
     end
 
     # Create a container.
@@ -135,15 +158,7 @@ module ACME
     # @return [Docker::Container]
     #
     def create
-      Docker::Container.create(
-        'name'         => @name,
-        'Hostname'     => @name,
-        'Domainname'   => domain,
-        'Env'          => env.join("\n"),
-        'Image'        => @image,
-        'Volumes'      => @volumes,
-        'ExposedPorts' => exposed_ports,
-        'HostConfig'   => host_config)
+      Docker::Container.create(options)
       self
     end
 
@@ -172,6 +187,7 @@ module ACME
     # @return [Docker::Container]
     #
     def run
+      return self if ip.nil?
       cmd  = platform_opts
       cmd << '-o PasswordAuthentication=yes'
       cmd << '-o UsePrivilegeSeparation=no'
@@ -194,7 +210,7 @@ module ACME
       when 'debian', 'ubuntu'
         debian
       else
-        raise "Unknown platform '#{platform}'"
+        raise "Unknown platform for #{@name} using #{@image}"
       end
     end
 
@@ -286,7 +302,9 @@ module ACME
     # @return [String]
     #
     def ip
-      container.json['NetworkSettings']['IPAddress']
+      container.json['NetworkSettings']['IPAddress'] || 'N/A'
+    rescue NoMethodError
+      'N/A'
     end
 
     # Display system-wide information about the container.

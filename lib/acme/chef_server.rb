@@ -24,6 +24,40 @@ module ACME
     # Mixin for creating and querying Chef users or Organizations.
     #
     module ChefServer
+      # Checks for the existnace of the user, if not found, create and save the
+      # keys in the .chef dir.
+      #
+      def create_user(user)
+        printf "%-70s %-s\n",
+          "Creating '#{user[:name]}' user on the Chef server:",
+        if ACME.chef.user_list.include? user[:name]
+          "[#{ret_ok}]"
+        else
+          client_key = ACME.chef.user_create(user)
+          open(CLIENT_PEM, File::CREAT|File::TRUNC|File::RDWR, 0644) { |file|
+            file << client_key ? "[#{ret_ok}]" : "[#{ret_fail}]"
+          }
+        end
+        client_key
+      end
+
+      # Checks for the existnace of the ACME Organization, if not found it will
+      # create the org and save the keys in the .chef dir.
+      #
+      def create_org(org)
+        printf "%-70s %-s\n",
+          "Creating '#{org[:name]}' org on the Chef server:",
+        if ACME.chef.org_list.include? org[:name]
+          "[#{ret_ok}]"
+        else
+          validation_key = ACME.chef.org_create(org)[0]
+          open(VALIDATION, File::CREAT|File::TRUNC|File::RDWR, 0644) { |file|
+            file << validation_key ? "[#{ret_ok}]" : "[#{ret_fail}]"
+          }
+        end
+        validation_key
+      end
+
       # Creates a user on the Chef server. The validation key for the
       # organization is returned to STDOUT when creating a user with this
       # method.
